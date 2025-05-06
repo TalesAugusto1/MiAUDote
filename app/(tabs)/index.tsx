@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 0,
+    paddingBottom: 90,
   },
   card: {
     backgroundColor: "#FFFFFF",
