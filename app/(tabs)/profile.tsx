@@ -7,7 +7,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
   const handleLogout = () => {
-
     router.replace("/login");
   };
 
@@ -110,6 +109,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 90,
   },
   profileImageContainer: {
     marginBottom: 15,
