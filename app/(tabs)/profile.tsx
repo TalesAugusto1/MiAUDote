@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   StyleSheet,
   Text,
@@ -12,23 +11,24 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "../../context/UserContext";
+import { useModal } from "../../contexts/ModalContext";
 
 export default function ProfileScreen() {
   const { user, logout, isLoading } = useUser();
+  const { showConfirm, showInfo } = useModal();
 
   const handleLogout = async () => {
-    Alert.alert("Sair", "Tem certeza que deseja sair?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
+    showConfirm(
+      "Sair",
+      "Tem certeza que deseja sair?",
+      async () => {
+        await logout();
       },
       {
-        text: "Sair",
-        onPress: async () => {
-          await logout();
-        },
-      },
-    ]);
+        confirmText: "Sair",
+        cancelText: "Cancelar",
+      }
+    );
   };
 
   const handleEditProfile = () => {
@@ -36,18 +36,18 @@ export default function ProfileScreen() {
   };
 
   const handleSettings = () => {
-    Alert.alert(
+    showInfo(
       "Configurações",
       "Esta funcionalidade será implementada em breve!"
     );
   };
 
   const handleFavorites = () => {
-    Alert.alert("Favoritos", "Esta funcionalidade será implementada em breve!");
+    showInfo("Favoritos", "Esta funcionalidade será implementada em breve!");
   };
 
   const handleHelp = () => {
-    Alert.alert("Ajuda", "Esta funcionalidade será implementada em breve!");
+    showInfo("Ajuda", "Esta funcionalidade será implementada em breve!");
   };
 
   if (isLoading || !user) {
