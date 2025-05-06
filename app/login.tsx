@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,18 +14,33 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useUser } from "../context/UserContext";
 
 export default function LoginScreen() {
+  const { login, isLoading } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    router.replace("/(tabs)");
+  const handleLogin = async () => {
+    if (!email.trim()) {
+      Alert.alert("Erro", "Por favor, digite seu e-mail");
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert("Erro", "Por favor, digite sua senha");
+      return;
+    }
+
+    const response = await login(email, password);
+
+    if (!response.success) {
+      Alert.alert("Erro", response.message);
+    }
   };
 
   const handleRegister = () => {
-    
     router.push("/signup");
   };
 
@@ -56,7 +73,7 @@ export default function LoginScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Nome/E-mail"
+              placeholder="E-mail"
               placeholderTextColor="#777"
               value={email}
               onChangeText={setEmail}
@@ -101,19 +118,30 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
-            <Ionicons
-              name="paw-outline"
-              size={20}
-              color="white"
-              style={styles.pawIcon}
-            />
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Text style={styles.loginButtonText}>Login</Text>
+                <Ionicons
+                  name="paw-outline"
+                  size={20}
+                  color="white"
+                  style={styles.pawIcon}
+                />
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.registerButton}
             onPress={handleRegister}
+            disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>Cadastre-se</Text>
             <Ionicons

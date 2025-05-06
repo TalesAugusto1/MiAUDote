@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -13,8 +14,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useUser } from "../context/UserContext";
 
 export default function SignupScreen() {
+  const { register, isLoading } = useUser();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
@@ -47,15 +51,18 @@ export default function SignupScreen() {
     return true;
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (validateForm()) {
-  
-      Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(tabs)"),
-        },
-      ]);
+      try {
+        const response = await register(name, email, cpf, password);
+
+        if (!response.success) {
+          Alert.alert("Erro", response.message);
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        Alert.alert("Erro", "Ocorreu um erro ao registrar. Tente novamente.");
+      }
     }
   };
 
@@ -191,14 +198,24 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-            <Text style={styles.signupButtonText}>Finalizar cadastro</Text>
-            <Ionicons
-              name="paw"
-              size={20}
-              color="white"
-              style={styles.pawIcon}
-            />
+          <TouchableOpacity
+            style={styles.signupButton}
+            onPress={handleSignup}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Text style={styles.signupButtonText}>Finalizar cadastro</Text>
+                <Ionicons
+                  name="paw"
+                  size={20}
+                  color="white"
+                  style={styles.pawIcon}
+                />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -266,7 +283,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 15,
+    marginTop: 20,
   },
   signupButton: {
     backgroundColor: "#4CC9F0",
@@ -292,10 +309,9 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     alignItems: "center",
-    marginTop: 15,
   },
   loginLinkText: {
+    fontSize: 15,
     color: "#4CC9F0",
-    fontSize: 14,
   },
 });

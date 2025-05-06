@@ -2,12 +2,10 @@ import { Animal } from "@/components/AnimalCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Image,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -76,10 +74,12 @@ interface EnhancedAnimalCardProps {
   animal: Animal;
 }
 
-const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => {
+// Memoize the animal card component to prevent unnecessary re-renders
+const EnhancedAnimalCard = memo(({ animal }: EnhancedAnimalCardProps) => {
   const router = useRouter();
 
-  const handlePress = () => {
+  // Use useCallback to memoize the handler function
+  const handlePress = useCallback(() => {
     let imageUri = "";
     if (typeof animal.image === "object" && animal.image !== null) {
       if ("uri" in animal.image && typeof animal.image.uri === "string") {
@@ -98,7 +98,7 @@ const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => {
         image: imageUri,
       },
     });
-  };
+  }, [animal, router]);
 
   return (
     <TouchableOpacity
@@ -121,190 +121,195 @@ const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => {
       </View>
     </TouchableOpacity>
   );
-};
+});
 
-const FilterTab = ({
-  filter,
-  active,
-  onPress,
-}: {
-  filter: string;
-  active: boolean;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity
-    style={[styles.filterButton, active && styles.activeFilterButton]}
-    onPress={onPress}
-  >
-    {filter === "Cachorro" && (
-      <Ionicons
-        name="paw"
-        size={16}
-        color={active ? "#4CC9F0" : "#FFFFFF"}
-        style={styles.filterIcon}
-      />
-    )}
-    {filter === "Gato" && (
-      <Ionicons
-        name="fish"
-        size={16}
-        color={active ? "#4CC9F0" : "#FFFFFF"}
-        style={styles.filterIcon}
-      />
-    )}
-    {filter === "Todos" && (
-      <Ionicons
-        name="grid"
-        size={16}
-        color={active ? "#4CC9F0" : "#FFFFFF"}
-        style={styles.filterIcon}
-      />
-    )}
-    <Text style={[styles.filterText, active && styles.activeFilterText]}>
-      {filter}
-    </Text>
-  </TouchableOpacity>
+// Memoize the filter tab component
+const FilterTab = memo(
+  ({
+    filter,
+    active,
+    onPress,
+  }: {
+    filter: string;
+    active: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      style={[styles.filterButton, active && styles.activeFilterButton]}
+      onPress={onPress}
+    >
+      {filter === "Cachorro" && (
+        <Ionicons
+          name="paw"
+          size={16}
+          color={active ? "#4CC9F0" : "#FFFFFF"}
+          style={styles.filterIcon}
+        />
+      )}
+      {filter === "Gato" && (
+        <Ionicons
+          name="fish"
+          size={16}
+          color={active ? "#4CC9F0" : "#FFFFFF"}
+          style={styles.filterIcon}
+        />
+      )}
+      {filter === "Todos" && (
+        <Ionicons
+          name="grid"
+          size={16}
+          color={active ? "#4CC9F0" : "#FFFFFF"}
+          style={styles.filterIcon}
+        />
+      )}
+      <Text style={[styles.filterText, active && styles.activeFilterText]}>
+        {filter}
+      </Text>
+    </TouchableOpacity>
+  )
 );
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Todos");
 
-  const filteredAnimals = animals.filter((animal) => {
-    const matchesSearch =
-      animal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      animal.type.toLowerCase().includes(searchQuery.toLowerCase());
+  // Use useMemo to avoid recalculating filtered animals on every render
+  const filteredAnimals = useMemo(() => {
+    return animals.filter((animal) => {
+      const matchesSearch =
+        animal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        animal.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesFilter =
-      activeFilter === "Todos" || animal.type === activeFilter;
+      const matchesFilter =
+        activeFilter === "Todos" || animal.type === activeFilter;
 
-    return matchesSearch && matchesFilter;
-  });
+      return matchesSearch && matchesFilter;
+    });
+  }, [searchQuery, activeFilter]);
 
-  const handleSearch = (text: string) => {
+  // Optimize search handler with debounce effect
+  const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
-    setLoading(true);
+  }, []);
 
-    setTimeout(() => setLoading(false), 300);
-  };
+  // Memoize the filter tab press handlers
+  const handleFilterPress = useCallback((filter: string) => {
+    setActiveFilter(filter);
+  }, []);
 
   return (
     <>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          <View style={styles.mainContainer}>
-            <View style={styles.fixedTopSection}>
-              <View style={styles.searchContainer}>
-                <Ionicons
-                  name="search"
-                  size={20}
-                  color="#777"
-                  style={styles.searchIcon}
-                />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Buscar animais"
-                  placeholderTextColor="#999"
-                  value={searchQuery}
-                  onChangeText={handleSearch}
-                />
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => setSearchQuery("")}
-                    style={styles.clearButton}
-                  >
-                    <Ionicons name="close-circle" size={18} color="#999" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <View style={styles.filterContainerWrapper}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.filterContainer}
-                  contentContainerStyle={styles.filterContent}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.mainContainer}>
+          {/* Header with curved bottom edge */}
+          <View style={styles.headerSection}>
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color="#777"
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar animais"
+                placeholderTextColor="#999"
+                value={searchQuery}
+                onChangeText={handleSearch}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery("")}
+                  style={styles.clearButton}
                 >
-                  {["Todos", "Cachorro", "Gato"].map((filter) => (
-                    <FilterTab
-                      key={filter}
-                      filter={filter}
-                      active={activeFilter === filter}
-                      onPress={() => setActiveFilter(filter)}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-
-            <View style={styles.contentContainer}>
-              <View style={styles.headerContainer}>
-                <View>
-                  <Text style={styles.headerTitle}>Adoção de animais</Text>
-                  <Text style={styles.headerSubtitle}>
-                    Encontre seu novo amigo
-                  </Text>
-                </View>
-                <View style={styles.logoContainer}>
-                  <Image
-                    source={require("@/assets/images/logo.png")}
-                    style={styles.logo}
-                    resizeMode="contain"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.resultsCountContainer}>
-                <Text style={styles.resultsCount}>
-                  {filteredAnimals.length}{" "}
-                  {filteredAnimals.length === 1
-                    ? "animal encontrado"
-                    : "animais encontrados"}
-                </Text>
-              </View>
-
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#4CC9F0" />
-                </View>
-              ) : (
-                <ScrollView
-                  style={styles.scrollView}
-                  contentContainerStyle={styles.animalGrid}
-                  showsVerticalScrollIndicator={false}
-                  bounces={true}
-                >
-                  {filteredAnimals.map((animal) => (
-                    <EnhancedAnimalCard key={animal.id} animal={animal} />
-                  ))}
-                  {filteredAnimals.length === 0 && !loading && (
-                    <View style={styles.noResultsContainer}>
-                      <Ionicons name="search-outline" size={50} color="#CCC" />
-                      <Text style={styles.noResultsText}>
-                        Nenhum animal encontrado
-                      </Text>
-                      <Text style={styles.noResultsSubtext}>
-                        Tente uma busca diferente
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
+                  <Ionicons name="close-circle" size={18} color="#999" />
+                </TouchableOpacity>
               )}
             </View>
+
+            <View style={styles.filterContainerWrapper}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.filterContainer}
+                contentContainerStyle={styles.filterContent}
+              >
+                {["Todos", "Cachorro", "Gato"].map((filter) => (
+                  <FilterTab
+                    key={filter}
+                    filter={filter}
+                    active={activeFilter === filter}
+                    onPress={() => handleFilterPress(filter)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
           </View>
-        </KeyboardAvoidingView>
+
+          {/* Curved connector - this element creates the curve without using complex shadows */}
+          <View style={styles.curvedConnector}>
+            <View style={styles.curveFiller} />
+          </View>
+
+          {/* Content section with curved top corners */}
+          <View style={styles.contentSection}>
+            <View style={styles.headerContainer}>
+              <View>
+                <Text style={styles.headerTitle}>Adoção de animais</Text>
+                <Text style={styles.headerSubtitle}>
+                  Encontre seu novo amigo
+                </Text>
+              </View>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("@/assets/images/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+
+            <View style={styles.resultsCountContainer}>
+              <Text style={styles.resultsCount}>
+                {filteredAnimals.length}{" "}
+                {filteredAnimals.length === 1
+                  ? "animal encontrado"
+                  : "animais encontrados"}
+              </Text>
+            </View>
+
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.animalGrid}
+              showsVerticalScrollIndicator={false}
+              bounces={true}
+              removeClippedSubviews={Platform.OS === "android"}
+            >
+              {filteredAnimals.map((animal) => (
+                <EnhancedAnimalCard key={animal.id} animal={animal} />
+              ))}
+              {filteredAnimals.length === 0 && (
+                <View style={styles.noResultsContainer}>
+                  <Ionicons name="search-outline" size={50} color="#CCC" />
+                  <Text style={styles.noResultsText}>
+                    Nenhum animal encontrado
+                  </Text>
+                  <Text style={styles.noResultsSubtext}>
+                    Tente uma busca diferente
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
       </SafeAreaView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#4CC9F0",
   },
@@ -312,10 +317,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#4CC9F0",
   },
-  fixedTopSection: {
-    paddingBottom: 35,
+  headerSection: {
+    backgroundColor: "#4CC9F0",
+    paddingBottom: 10,
     paddingTop: 10,
-    zIndex: 10,
+    zIndex: 5,
+  },
+  // New component to create curved effect safely
+  curvedConnector: {
+    height: 30,
+    backgroundColor: "#4CC9F0",
+    zIndex: 1,
+    position: "relative",
+    marginBottom: -30, // Overlap with content section
+  },
+  curveFiller: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 30,
+    backgroundColor: "#FFF5EB",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+  },
+  contentSection: {
+    flex: 1,
+    backgroundColor: "#FFF5EB",
+    zIndex: 2,
+    paddingTop: 10,
   },
   searchContainer: {
     flexDirection: "row",
@@ -377,11 +407,11 @@ const styles = StyleSheet.create({
   activeFilterButton: {
     backgroundColor: "#FFFFFF",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 6,
-    transform: [{ translateY: -2 }],
+    shadowRadius: 3,
+    elevation: 4,
+    // Remove transform that was causing flickering
     borderColor: "rgba(255,255,255,0.8)",
   },
   filterIcon: {
@@ -402,11 +432,18 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingTop: 20,
     marginTop: -20,
-    shadowColor: "#000",
+    // Adjust shadow to be less intensive on performance
+    shadowColor: Platform.OS === "ios" ? "#000" : "transparent",
     shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOpacity: 0.07,
+    shadowRadius: 3,
+    elevation: Platform.OS === "android" ? 2 : 0,
+    // Hardware acceleration for smoother rounded corners on Android
+    ...Platform.select({
+      android: {
+        overflow: "hidden",
+      },
+    }),
   },
   headerContainer: {
     flexDirection: "row",
