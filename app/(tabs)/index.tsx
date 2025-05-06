@@ -94,6 +94,49 @@ const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => (
   </TouchableOpacity>
 );
 
+const FilterTab = ({
+  filter,
+  active,
+  onPress,
+}: {
+  filter: string;
+  active: boolean;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity
+    style={[styles.filterButton, active && styles.activeFilterButton]}
+    onPress={onPress}
+  >
+    {filter === "Cachorro" && (
+      <Ionicons
+        name="paw"
+        size={16}
+        color={active ? "#4CC9F0" : "#FFFFFF"}
+        style={styles.filterIcon}
+      />
+    )}
+    {filter === "Gato" && (
+      <Ionicons
+        name="fish"
+        size={16}
+        color={active ? "#4CC9F0" : "#FFFFFF"}
+        style={styles.filterIcon}
+      />
+    )}
+    {filter === "Todos" && (
+      <Ionicons
+        name="grid"
+        size={16}
+        color={active ? "#4CC9F0" : "#FFFFFF"}
+        style={styles.filterIcon}
+      />
+    )}
+    <Text style={[styles.filterText, active && styles.activeFilterText]}>
+      {filter}
+    </Text>
+  </TouchableOpacity>
+);
+
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -151,32 +194,23 @@ export default function HomeScreen() {
                 )}
               </View>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filterContainer}
-                contentContainerStyle={styles.filterContent}
-              >
-                {["Todos", "Cachorro", "Gato"].map((filter) => (
-                  <TouchableOpacity
-                    key={filter}
-                    style={[
-                      styles.filterButton,
-                      activeFilter === filter && styles.activeFilterButton,
-                    ]}
-                    onPress={() => setActiveFilter(filter)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterText,
-                        activeFilter === filter && styles.activeFilterText,
-                      ]}
-                    >
-                      {filter}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <View style={styles.filterContainerWrapper}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.filterContainer}
+                  contentContainerStyle={styles.filterContent}
+                >
+                  {["Todos", "Cachorro", "Gato"].map((filter) => (
+                    <FilterTab
+                      key={filter}
+                      filter={filter}
+                      active={activeFilter === filter}
+                      onPress={() => setActiveFilter(filter)}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
             </View>
 
             <View style={styles.contentContainer}>
@@ -250,7 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CC9F0",
   },
   fixedTopSection: {
-    paddingBottom: 30,
+    paddingBottom: 35,
     paddingTop: 10,
     zIndex: 10,
   },
@@ -259,7 +293,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
-    marginTop: 15,
+    marginTop: 10,
     borderRadius: 25,
     paddingHorizontal: 15,
     height: 50,
@@ -281,26 +315,53 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 8,
   },
+  filterContainerWrapper: {
+    marginTop: 12,
+    marginBottom: 5,
+  },
   filterContainer: {
-    marginTop: 15,
+    marginLeft: 0,
+    paddingVertical: 3,
   },
   filterContent: {
     paddingHorizontal: 15,
-    paddingBottom: 5,
+    paddingVertical: 2,
   },
   filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 10,
-    backgroundColor: "rgba(255,255,255,0.3)",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    marginHorizontal: 6,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    height: 40,
+    justifyContent: "center",
   },
   activeFilterButton: {
     backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 6,
+    transform: [{ translateY: -2 }],
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  filterIcon: {
+    marginRight: 6,
   },
   filterText: {
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#FFFFFF",
+    fontSize: 14,
   },
   activeFilterText: {
     color: "#4CC9F0",
