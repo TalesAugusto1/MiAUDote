@@ -20,6 +20,10 @@ export default function FormScreen() {
   const [address, setAddress] = useState("");
   const [hasAnimals, setHasAnimals] = useState(false);
   const [reason, setReason] = useState("");
+  const [salary, setSalary] = useState("");
+  const [hasYard, setHasYard] = useState("");
+  const [otherAnimals, setOtherAnimals] = useState("");
+  const [experience, setExperience] = useState("");
 
   const handleSubmit = () => {
     if (!name.trim() || !phone.trim() || !address.trim() || !reason.trim()) {
@@ -38,20 +42,26 @@ export default function FormScreen() {
     setAddress("");
     setHasAnimals(false);
     setReason("");
+    setSalary("");
+    setHasYard("");
+    setOtherAnimals("");
+    setExperience("");
   };
 
   return (
     <>
       <StatusBar style="dark" />
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Formulário de Adoção</Text>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("@/assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Formulário de Adoção</Text>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("@/assets/images/logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
           </View>
         </View>
 
@@ -60,10 +70,14 @@ export default function FormScreen() {
           contentContainerStyle={styles.formContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.formDescription}>
-            Preencha o formulário abaixo para iniciar o processo de adoção de um
-            animalzinho
-          </Text>
+          <View style={styles.formHeaderContainer}>
+            <Text style={styles.formTitle}>Preencha o formulário</Text>
+            <Image
+              source={require("@/assets/images/logo.png")}
+              style={styles.centerLogo}
+              resizeMode="contain"
+            />
+          </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Nome Completo *</Text>
@@ -124,6 +138,44 @@ export default function FormScreen() {
           </View>
 
           <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Média salarial</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Informe sua média salarial"
+                placeholderTextColor="#999"
+                value={salary}
+                onChangeText={setSalary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Tem quintal?</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="home-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Possui quintal em casa?"
+                placeholderTextColor="#999"
+                value={hasYard}
+                onChangeText={setHasYard}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Já possui outros animais?</Text>
             <View style={styles.switchContainer}>
               <Text style={styles.switchLabel}>
@@ -134,6 +186,44 @@ export default function FormScreen() {
                 onValueChange={setHasAnimals}
                 trackColor={{ false: "#D9D9D9", true: "#4CC9F0" }}
                 thumbColor={"#FFFFFF"}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Detalhes sobre outros animais</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="paw-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Que outros animais você possui?"
+                placeholderTextColor="#999"
+                value={otherAnimals}
+                onChangeText={setOtherAnimals}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Experiência com animais</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="help-circle-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Possui alguma experiência com animais?"
+                placeholderTextColor="#999"
+                value={experience}
+                onChangeText={setExperience}
               />
             </View>
           </View>
@@ -154,15 +244,20 @@ export default function FormScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Enviar Formulário</Text>
-            <Ionicons
-              name="paw"
-              size={20}
-              color="white"
-              style={styles.submitIcon}
-            />
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.finishButton}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.finishButtonText}>Finalizar Formulário</Text>
+              <Ionicons
+                name="paw"
+                size={20}
+                color="white"
+                style={styles.submitIcon}
+              />
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.requiredNote}>* Campos obrigatórios</Text>
         </ScrollView>
@@ -174,7 +269,13 @@ export default function FormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF5EB",
+    backgroundColor: "#4CC9F0",
+  },
+  headerWrapper: {
+    backgroundColor: "#4CC9F0",
+    paddingBottom: 35,
+    paddingTop: 10,
+    zIndex: 10,
   },
   header: {
     flexDirection: "row",
@@ -182,12 +283,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: "#4CC9F0",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "white",
+    textShadowColor: "rgba(0, 0, 0, 0.1)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   logoContainer: {
     alignItems: "center",
@@ -197,12 +300,38 @@ const styles = StyleSheet.create({
     width: 60,
     height: 40,
   },
+  centerLogo: {
+    width: 120,
+    height: 80,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
   formContainer: {
     flex: 1,
+    backgroundColor: "#FFEED9",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
   },
   formContent: {
-    padding: 20,
+    padding: 25,
     paddingBottom: 40,
+  },
+  formHeaderContainer: {
+    marginTop: 15,
+    marginBottom: 5,
+  },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+    textAlign: "center",
   },
   formDescription: {
     fontSize: 16,
@@ -211,7 +340,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   inputLabel: {
     fontSize: 16,
@@ -224,9 +353,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: 15,
     paddingHorizontal: 15,
     backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   textareaWrapper: {
     paddingVertical: 10,
@@ -248,39 +382,54 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: "white",
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   switchLabel: {
     fontSize: 16,
     color: "#333",
   },
-  submitButton: {
+  buttonContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  finishButton: {
     backgroundColor: "#4CC9F0",
-    borderRadius: 8,
+    borderRadius: 25,
     paddingVertical: 15,
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 15,
+    marginBottom: 5,
     flexDirection: "row",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
   },
-  submitButtonText: {
+  finishButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
   submitIcon: {
-    marginLeft: 8,
+    marginLeft: 10,
   },
   requiredNote: {
     fontSize: 12,
     color: "#777",
     textAlign: "center",
-    marginTop: 10,
+    marginTop: 15,
+    marginBottom: 10,
   },
 });

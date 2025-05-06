@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   card: {
     backgroundColor: "#FFFFFF",
