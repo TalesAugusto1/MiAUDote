@@ -93,6 +93,13 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="animal-details"
+        options={{
+          title: "Detalhes",
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

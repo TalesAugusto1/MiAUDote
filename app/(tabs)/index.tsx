@@ -1,5 +1,6 @@
 import { Animal } from "@/components/AnimalCard";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
@@ -75,24 +76,52 @@ interface EnhancedAnimalCardProps {
   animal: Animal;
 }
 
-const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => (
-  <TouchableOpacity style={[styles.card, { width: cardWidth }]}>
-    <View style={styles.cardImageContainer}>
-      <Image source={animal.image} style={styles.cardImage} />
-      <View style={styles.cardTypeTag}>
-        <Text style={styles.cardTypeText}>{animal.type}</Text>
+const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    let imageUri = "";
+    if (typeof animal.image === "object" && animal.image !== null) {
+      if ("uri" in animal.image && typeof animal.image.uri === "string") {
+        imageUri = animal.image.uri;
+      }
+    }
+
+    router.push({
+      pathname: "/animal-details",
+      params: {
+        id: animal.id,
+        name: animal.name,
+        type: animal.type,
+        age: animal.age,
+        gender: animal.gender,
+        image: imageUri,
+      },
+    });
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, { width: cardWidth }]}
+      onPress={handlePress}
+    >
+      <View style={styles.cardImageContainer}>
+        <Image source={animal.image} style={styles.cardImage} />
+        <View style={styles.cardTypeTag}>
+          <Text style={styles.cardTypeText}>{animal.type}</Text>
+        </View>
       </View>
-    </View>
-    <View style={styles.cardInfo}>
-      <Text style={styles.cardName}>{animal.name}</Text>
-      <View style={styles.cardDetails}>
-        <Text style={styles.cardDetail}>{animal.age}</Text>
-        <Text style={styles.cardDetailDot}>•</Text>
-        <Text style={styles.cardDetail}>{animal.gender}</Text>
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardName}>{animal.name}</Text>
+        <View style={styles.cardDetails}>
+          <Text style={styles.cardDetail}>{animal.age}</Text>
+          <Text style={styles.cardDetailDot}>•</Text>
+          <Text style={styles.cardDetail}>{animal.gender}</Text>
+        </View>
       </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 const FilterTab = ({
   filter,
