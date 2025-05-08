@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -15,28 +14,30 @@ import {
   View,
 } from "react-native";
 import { useUser } from "../context/UserContext";
+import { useModal } from "../contexts/ModalContext";
 
 export default function LoginScreen() {
   const { login, isLoading } = useUser();
+  const { showError } = useModal();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim()) {
-      Alert.alert("Erro", "Por favor, digite seu e-mail");
+      showError("Erro", "Por favor, digite seu e-mail");
       return;
     }
 
     if (!password.trim()) {
-      Alert.alert("Erro", "Por favor, digite sua senha");
+      showError("Erro", "Por favor, digite sua senha");
       return;
     }
 
     const response = await login(email, password);
 
     if (!response.success) {
-      Alert.alert("Erro", response.message);
+      showError("Erro", response.message);
     }
   };
 

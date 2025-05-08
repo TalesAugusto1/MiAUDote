@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -15,9 +14,11 @@ import {
   View,
 } from "react-native";
 import { useUser } from "../context/UserContext";
+import { useModal } from "../contexts/ModalContext";
 
 export default function SignupScreen() {
   const { register, isLoading } = useUser();
+  const { showError, showSuccess } = useModal();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,24 +28,24 @@ export default function SignupScreen() {
 
   const validateForm = () => {
     if (!name.trim()) {
-      Alert.alert("Erro", "Por favor, digite seu nome completo");
+      showError("Erro", "Por favor, digite seu nome completo");
       return false;
     }
 
     if (!email.trim() || !email.includes("@")) {
-      Alert.alert("Erro", "Por favor, digite um e-mail válido");
+      showError("Erro", "Por favor, digite um e-mail válido");
       return false;
     }
 
     // Check for CPF with formatting (should be XXX.XXX.XXX-XX)
     const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
     if (!cpf.trim() || !cpfRegex.test(cpf)) {
-      Alert.alert("Erro", "Por favor, digite um CPF válido");
+      showError("Erro", "Por favor, digite um CPF válido");
       return false;
     }
 
     if (!password.trim() || password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres");
+      showError("Erro", "A senha deve ter pelo menos 6 caracteres");
       return false;
     }
 
@@ -57,17 +58,19 @@ export default function SignupScreen() {
         const response = await register(name, email, cpf, password);
 
         if (!response.success) {
-          Alert.alert("Erro", response.message);
+          showError("Erro", response.message);
+        } else {
+          showSuccess("Sucesso", "Cadastro realizado com sucesso!", goToLogin);
         }
       } catch (error) {
         console.error("Signup error:", error);
-        Alert.alert("Erro", "Ocorreu um erro ao registrar. Tente novamente.");
+        showError("Erro", "Ocorreu um erro ao registrar. Tente novamente.");
       }
     }
   };
 
   const goToLogin = () => {
-    router.replace("/login");
+    router.push("/login");
   };
 
   // Format CPF as user types (XXX.XXX.XXX-XX)

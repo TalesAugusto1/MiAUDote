@@ -34,6 +34,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
+        animation: "fade",
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
