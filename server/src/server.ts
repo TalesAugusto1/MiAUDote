@@ -18,6 +18,11 @@ import { PrismaOngUserRepository } from './repositories/PrismaOngUserRepository'
 import { AdotanteUserService } from './services/AdotanteUserService';
 import { OngUserService } from './services/OngUserService';
 
+// Animal
+import { AnimalController } from './controllers/AnimalController';
+import { PrismaAnimalRepository } from './repositories/PrismaAnimalRepository';
+import { AnimalService } from './services/AnimalService';
+
 const app = express();
 
 app.use(cors());
@@ -44,6 +49,11 @@ const ongUserRepository = new PrismaOngUserRepository();
 const ongUserService = new OngUserService(ongUserRepository);
 const ongUserController = new OngUserController(ongUserService);
 
+// Animal
+const animalRepository = new PrismaAnimalRepository();
+const animalService = new AnimalService(animalRepository);
+const animalController = new AnimalController(animalService);
+
 // Rotas Auth
 app.post('/auth/register', (req, res) => authController.register(req, res));
 app.post('/auth/login', (req, res) => authController.login(req, res));
@@ -68,6 +78,13 @@ app.get('/ongs/:id', (req, res) => ongUserController.getById(req, res));
 app.get('/ongs', (req, res) => ongUserController.getByUserId(req, res));
 app.put('/ongs/:id', (req, res) => ongUserController.update(req, res));
 app.delete('/ongs/:id', (req, res) => ongUserController.delete(req, res));
+
+// Rotas Animal
+app.post('/animais', (req, res) => animalController.create(req, res));
+app.get('/animais/:id', (req, res) => animalController.getById(req, res));
+app.get('/animais', (req, res) => animalController.getByOngId(req, res));
+app.put('/animais/:id', (req, res) => animalController.update(req, res));
+app.delete('/animais/:id', (req, res) => animalController.delete(req, res));
 
 const PORT = process.env.PORT || 3333;
 
