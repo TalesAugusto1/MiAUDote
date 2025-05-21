@@ -28,6 +28,11 @@ import { AdocaoController } from './controllers/AdocaoController';
 import { PrismaAdocaoRepository } from './repositories/PrismaAdocaoRepository';
 import { AdocaoService } from './services/AdocaoService';
 
+// Formulario
+import { FormularioController } from './controllers/FormularioController';
+import { PrismaFormularioRepository } from './repositories/PrismaFormularioRepository';
+import { FormularioService } from './services/FormularioService';
+
 const app = express();
 
 app.use(cors());
@@ -63,6 +68,11 @@ const animalController = new AnimalController(animalService);
 const adocaoRepository = new PrismaAdocaoRepository();
 const adocaoService = new AdocaoService(adocaoRepository);
 const adocaoController = new AdocaoController(adocaoService);
+
+// Formulario
+const formularioRepository = new PrismaFormularioRepository();
+const formularioService = new FormularioService(formularioRepository);
+const formularioController = new FormularioController(formularioService);
 
 // Rotas Auth
 app.post('/auth/register', (req, res) => authController.register(req, res));
@@ -107,6 +117,13 @@ app.get('/adocoes', (req, res) => {
 });
 app.put('/adocoes/:id', (req, res) => adocaoController.update(req, res));
 app.delete('/adocoes/:id', (req, res) => adocaoController.delete(req, res));
+
+// Rotas Formulario
+app.post('/formularios', (req, res) => formularioController.create(req, res));
+app.get('/formularios/:id', (req, res) => formularioController.getById(req, res));
+app.get('/formularios', (req, res) => formularioController.getByAdotanteUserId(req, res));
+app.put('/formularios/:id', (req, res) => formularioController.update(req, res));
+app.delete('/formularios/:id', (req, res) => formularioController.delete(req, res));
 
 const PORT = process.env.PORT || 3333;
 
