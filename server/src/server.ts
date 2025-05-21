@@ -23,6 +23,11 @@ import { AnimalController } from './controllers/AnimalController';
 import { PrismaAnimalRepository } from './repositories/PrismaAnimalRepository';
 import { AnimalService } from './services/AnimalService';
 
+// Adocao
+import { AdocaoController } from './controllers/AdocaoController';
+import { PrismaAdocaoRepository } from './repositories/PrismaAdocaoRepository';
+import { AdocaoService } from './services/AdocaoService';
+
 const app = express();
 
 app.use(cors());
@@ -53,6 +58,11 @@ const ongUserController = new OngUserController(ongUserService);
 const animalRepository = new PrismaAnimalRepository();
 const animalService = new AnimalService(animalRepository);
 const animalController = new AnimalController(animalService);
+
+// Adocao
+const adocaoRepository = new PrismaAdocaoRepository();
+const adocaoService = new AdocaoService(adocaoRepository);
+const adocaoController = new AdocaoController(adocaoService);
 
 // Rotas Auth
 app.post('/auth/register', (req, res) => authController.register(req, res));
@@ -85,6 +95,18 @@ app.get('/animais/:id', (req, res) => animalController.getById(req, res));
 app.get('/animais', (req, res) => animalController.getByOngId(req, res));
 app.put('/animais/:id', (req, res) => animalController.update(req, res));
 app.delete('/animais/:id', (req, res) => animalController.delete(req, res));
+
+// Rotas Adocao
+app.post('/adocoes', (req, res) => adocaoController.create(req, res));
+app.get('/adocoes/:id', (req, res) => adocaoController.getById(req, res));
+app.get('/adocoes', (req, res) => {
+  if (req.query.adotanteId) return adocaoController.getByAdotanteId(req, res);
+  if (req.query.ongId) return adocaoController.getByOngId(req, res);
+  if (req.query.animalId) return adocaoController.getByAnimalId(req, res);
+  return res.status(400).json({ error: 'Parâmetro de busca não informado.' });
+});
+app.put('/adocoes/:id', (req, res) => adocaoController.update(req, res));
+app.delete('/adocoes/:id', (req, res) => adocaoController.delete(req, res));
 
 const PORT = process.env.PORT || 3333;
 
