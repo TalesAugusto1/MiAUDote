@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  type       String   // 'adotante' ou 'ong'
+  profilePicture String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  adotante   AdotanteUser?
+  ong        OngUser?
+  posts      Post[]
+}
+
+model AdotanteUser {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  cpf            String
+  formRespondido Boolean @default(false)
+  user           User    @relation(fields: [userId], references: [id])
+  formulario     Formulario?
+  adocoes        Adocao[]
+}
+
+model OngUser {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  cnpj      String
+  endereco  String
+  whatsapp  String
+  user      User   @relation(fields: [userId], references: [id])
+  animais   Animal[]
+  adocoes   Adocao[]
+}
+
+model Animal {
+  id         Int      @id @default(autoincrement())
+  ongId      Int
+  name       String
+  tipo       String
+  raca       String
+  sexo       String
+  porte      String
+  idade      Int
+  descricao  String
+  images     String   @db.Text
+  ong        OngUser @relation(fields: [ongId], references: [id])
+  adocoes    Adocao[]
+}
+
+model Formulario {
+  id                  Int     @id @default(autoincrement())
+  adotanteUserId      Int     @unique
+  mediaSalarial       String
+  temQuintal          Boolean
+  possuiOutrosAnimais Boolean
+  animais             String  @db.Text // JSON com os animais
+  imovel              String  // casa ou apartamento
+  adotante            AdotanteUser @relation(fields: [adotanteUserId], references: [id])
+}
+
+model Adocao {
+  id         Int      @id @default(autoincrement())
+  animalId   Int
+  adotanteId Int
+  ongId      Int
+  status     String
+  animal     Animal      @relation(fields: [animalId], references: [id])
+  adotante   AdotanteUser @relation(fields: [adotanteId], references: [id])
+  ong        OngUser     @relation(fields: [ongId], references: [id])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  images    String   @db.Text
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+} 
