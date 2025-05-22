@@ -35,7 +35,7 @@ import { FormularioService } from './services/FormularioService';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
 app.use(express.json());
 
 // Swagger
@@ -129,5 +129,5 @@ const PORT = process.env.PORT || 3333;
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📚 Documentação disponível em http://192.168.1.7:${PORT}/api-docs`);
+  console.log(`📚 Documentação disponível em http://localhost:${PORT}/api-docs`);
 }); 

@@ -5,8 +5,16 @@ import { AuthService } from '../services/AuthService';
 const registerSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
+  confirmEmail: z.string().email(),
   password: z.string().min(6),
+  confirmPassword: z.string().min(6),
   profilePicture: z.string().optional(),
+}).refine((data) => data.email === data.confirmEmail, {
+  message: "Os e-mails não coincidem",
+  path: ["confirmEmail"],
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
 const loginSchema = z.object({
@@ -56,13 +64,19 @@ export class AuthController {
    *             required:
    *               - name
    *               - email
+   *               - confirmEmail
    *               - password
+   *               - confirmPassword
    *             properties:
    *               name:
    *                 type: string
    *               email:
    *                 type: string
+   *               confirmEmail:
+   *                 type: string
    *               password:
+   *                 type: string
+   *               confirmPassword:
    *                 type: string
    *               profilePicture:
    *                 type: string
@@ -79,7 +93,12 @@ export class AuthController {
   async register(req: Request, res: Response) {
     try {
       const data = registerSchema.parse(req.body);
-      const result = await this.authService.register(data);
+      const result = await this.authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        profilePicture: data.profilePicture,
+      });
       return res.status(201).json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
