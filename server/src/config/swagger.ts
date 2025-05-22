@@ -10,8 +10,12 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
+        url: 'http://localhost:3333',
+        description: 'Localhost',
+      },
+      {
         url: 'http://192.168.1.7:3333',
-        description: 'Servidor de Desenvolvimento',
+        description: 'Rede local',
       },
     ],
     components: {
@@ -24,7 +28,7 @@ const options: swaggerJsdoc.Options = {
       },
     },
   },
-  apis: ['./src/controllers/*.ts'], // Caminho para os arquivos com as anotações
+  apis: ['./src/controllers/**/*.ts'], // Caminho atualizado para incluir subpastas
 };
 
 export const swaggerSpec = swaggerJsdoc(options); 
