@@ -149,42 +149,40 @@ Join our community of developers creating universal apps.
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
 
-# MiAuDote - Implementação de Padrões SOLID e Strategy
+# Implementação dos Padrões SOLID e Strategy no MiAuDote
 
-Este documento descreve a implementação dos princípios SOLID e do padrão Strategy no projeto MiAuDote.
-
-## Princípios SOLID Implementados
+## Padrões SOLID Implementados
 
 ### 1. Single Responsibility Principle (SRP)
-- **AuthStorage**: Implementado como uma classe separada responsável apenas pelo gerenciamento do armazenamento de dados de autenticação.
-- **ApiClient**: Classe dedicada exclusivamente ao gerenciamento de requisições HTTP.
-- **AnimalService**: Responsável apenas pela lógica de negócios relacionada aos animais.
+- **AuthStorage**: Classe responsável exclusivamente pelo gerenciamento de dados de autenticação
+- **ApiClient**: Classe dedicada apenas ao gerenciamento de requisições HTTP
+- **AnimalService**: Responsável apenas pela lógica de negócios relacionada aos animais
 
 ### 2. Open/Closed Principle (OCP)
-- **Interfaces de Serviço**: As interfaces `IAuthService` e `IAnimalService` permitem extensões sem modificar o código existente.
-- **Sistema de Cache**: Implementação flexível que pode ser estendida para diferentes estratégias de cache.
+- **Interfaces de Serviço**: `IAuthService` e `IAnimalService` permitem extensões sem modificar o código existente
+- **Sistema de Cache**: Implementação flexível que pode ser estendida para diferentes estratégias de cache
 
 ### 3. Liskov Substitution Principle (LSP)
-- **Serviços de Autenticação**: A classe `AuthService` implementa completamente a interface `IAuthService`, mantendo a consistência do contrato.
-- **Serviços de Animais**: A classe `AnimalService` implementa `IAnimalService` de forma que pode ser substituída por qualquer outra implementação que siga a mesma interface.
+- **Serviços de Autenticação**: `AuthService` implementa completamente a interface `IAuthService`
+- **Serviços de Animais**: `AnimalService` implementa `IAnimalService` de forma substituível
 
 ### 4. Interface Segregation Principle (ISP)
-- **Interfaces Específicas**: Interfaces como `IAuthService` e `IAnimalService` são específicas para seus domínios, evitando interfaces "gordas".
-- **Tipos de Dados**: Interfaces como `User` e `Animal` são bem definidas e específicas para seus propósitos.
+- **Interfaces Específicas**: `IAuthService` e `IAnimalService` são específicas para seus domínios
+- **Tipos de Dados**: Interfaces como `User` e `Animal` são bem definidas e específicas
 
 ### 5. Dependency Inversion Principle (DIP)
-- **Injeção de Dependências**: Serviços como `AuthService` dependem de abstrações (interfaces) ao invés de implementações concretas.
-- **Acoplamento Baixo**: Uso de interfaces para reduzir o acoplamento entre componentes.
+- **Injeção de Dependências**: Serviços dependem de abstrações (interfaces) ao invés de implementações concretas
+- **Acoplamento Baixo**: Uso de interfaces para reduzir o acoplamento entre componentes
 
 ## Padrão Strategy Implementado
 
 ### Estratégias de Autenticação
-- O sistema de autenticação implementa o padrão Strategy através da interface `IAuthService`, permitindo diferentes estratégias de autenticação.
-- A classe `AuthService` implementa uma estratégia específica de autenticação, mas pode ser facilmente substituída por outras implementações.
+- Interface `IAuthService` permite diferentes estratégias de autenticação
+- Classe `AuthService` implementa uma estratégia específica, mas pode ser substituída
 
 ### Estratégias de Cache
-- Implementação de cache no `AnimalService` que pode ser estendida para diferentes estratégias de armazenamento em cache.
-- O sistema de cache é flexível e pode ser adaptado para diferentes necessidades.
+- Sistema de cache no `AnimalService` que pode ser estendido
+- Implementação flexível para diferentes necessidades de armazenamento
 
 ## O que não foi possível implementar e por quê
 
