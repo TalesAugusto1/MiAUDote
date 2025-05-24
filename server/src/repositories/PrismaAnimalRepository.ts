@@ -1,5 +1,7 @@
-import { Animal, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { IAnimalRepository } from '../interfaces/IAnimalRepository';
+
+type Animal = PrismaClient['animal']['payload']['default'];
 
 export class PrismaAnimalRepository implements IAnimalRepository {
   private prisma = new PrismaClient();
@@ -12,8 +14,8 @@ export class PrismaAnimalRepository implements IAnimalRepository {
     return this.prisma.animal.findUnique({ where: { id } });
   }
 
-  async findByOngId(ongId: number): Promise<Animal[]> {
-    return this.prisma.animal.findMany({ where: { ongId } });
+  async findByOng(ongId: number): Promise<Animal[]> {
+    return this.prisma.animal.findMany({ where: { idOng: ongId } });
   }
 
   async update(id: number, data: Partial<Animal>): Promise<Animal> {
@@ -22,5 +24,9 @@ export class PrismaAnimalRepository implements IAnimalRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.animal.delete({ where: { id } });
+  }
+
+  async findAll(): Promise<Animal[]> {
+    return this.prisma.animal.findMany();
   }
 } 

@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  email         String          @unique
+  name          String
+  password      String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  preferences   UserPreferences?
+  adocoes       Adocao[]        @relation("UserAdocoes")
+  ong           Ong?            @relation("UserOng")
+  formularios   Formulario[]
+}
+
+model UserPreferences {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  user            User     @relation(fields: [userId], references: [id])
+  notifications   Boolean  @default(true)
+  emailUpdates    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Ong {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  address   String
+  phone     String
+  userId    Int      @unique
+  user      User     @relation("UserOng", fields: [userId], references: [id])
+  adocoes   Adocao[] @relation("OngAdocoes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Animal {
+  id          Int      @id @default(autoincrement())
+  name        String
+  species     String
+  breed       String?
+  age         Int
+  description String
+  imageUrl    String?
+  status      String   @default("disponivel")
+  adocoes     Adocao[] @relation("AnimalAdocoes")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Adocao {
+  id         Int      @id @default(autoincrement())
+  animalId   Int
+  animal     Animal   @relation("AnimalAdocoes", fields: [animalId], references: [id])
+  adotanteId Int
+  adotante   User     @relation("UserAdocoes", fields: [adotanteId], references: [id])
+  ongId      Int
+  ong        Ong      @relation("OngAdocoes", fields: [ongId], references: [id])
+  status     String   @default("pendente")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Formulario {
+  id              Int      @id @default(autoincrement())
+  idAdotante      Int
+  nomeAdotante    String
+  ongResponsavel  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  adotante        User     @relation(fields: [idAdotante], references: [id])
+} 

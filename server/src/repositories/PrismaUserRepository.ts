@@ -1,5 +1,7 @@
-import { PrismaClient, User, UserPreferences } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { IUserRepository } from '../interfaces/IUserRepository';
+
+type User = PrismaClient['user']['payload']['default'];
 
 export class PrismaUserRepository implements IUserRepository {
   private prisma = new PrismaClient();
@@ -23,14 +25,4 @@ export class PrismaUserRepository implements IUserRepository {
   async delete(id: number): Promise<void> {
     await this.prisma.user.delete({ where: { id } });
   }
-
-  async updatePreferences(
-    userId: number,
-    preferences: Partial<UserPreferences>
-  ): Promise<UserPreferences> {
-    return this.prisma.userPreferences.update({
-      where: { userId },
-      data: preferences,
-    });
-  }
-} 
+}

@@ -1,5 +1,12 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Autenticação de usuários
+ */
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { PrismaUserRepository } from '../repositories/PrismaUserRepository';
 import { AuthService } from '../services/AuthService';
 
 const registerSchema = z.object({
@@ -47,7 +54,12 @@ const loginSchema = z.object({
  */
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  private authService: AuthService;
+
+  constructor() {
+    const userRepository = new PrismaUserRepository();
+    this.authService = new AuthService(userRepository);
+  }
 
   /**
    * @swagger
@@ -148,6 +160,31 @@ export class AuthController {
         return res.status(400).json({ error: error.errors });
       }
       return res.status(401).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * @swagger
+   * /auth/verify:
+   *   post:
+   *     summary: Verifica o token de autenticação
+   *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Token válido
+   */
+  async verifyToken(req: Request, res: Response) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        return res.status(401).json({ error: 'Token não fornecido' });
+      }
+      const user = await this.authService.verifyToken(token);
+      return res.json(user);
+    } catch (error) {
+      return res.status(401).json({ error: 'Token inválido' });
     }
   }
 } 

@@ -1,5 +1,7 @@
-import { Formulario, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { IFormularioRepository } from '../interfaces/IFormularioRepository';
+
+type Formulario = PrismaClient['formulario']['payload']['default'];
 
 export class PrismaFormularioRepository implements IFormularioRepository {
   private prisma = new PrismaClient();
@@ -12,8 +14,12 @@ export class PrismaFormularioRepository implements IFormularioRepository {
     return this.prisma.formulario.findUnique({ where: { id } });
   }
 
-  async findByAdotanteUserId(adotanteUserId: number): Promise<Formulario | null> {
-    return this.prisma.formulario.findUnique({ where: { adotanteUserId } });
+  async findByAdotante(idAdotante: number): Promise<Formulario[]> {
+    return this.prisma.formulario.findMany({ where: { idAdotante } });
+  }
+
+  async findByAnimal(animalId: number): Promise<Formulario[]> {
+    return this.prisma.formulario.findMany({ where: { animalId } });
   }
 
   async update(id: number, data: Partial<Formulario>): Promise<Formulario> {

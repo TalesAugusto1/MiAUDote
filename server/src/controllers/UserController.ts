@@ -4,146 +4,85 @@
  *   name: User
  *   description: Gerenciamento de usuários
  */
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
-import { UserService } from '../services/UserService';
+
+console.log('Inicializando PrismaClient...');
+const prisma = new PrismaClient();
+console.log('PrismaClient inicializado com sucesso');
 
 export class UserController {
-  constructor(private userService: UserService) {}
+  /**
+   * @swagger
+   * /user:
+   *   get:
+   *     summary: Lista todos os usuários
+   *     tags: [User]
+   *     responses:
+   *       200:
+   *         description: Lista de usuários
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/User'
+   */
+  async findAll(req: Request, res: Response) {
+    try {
+      console.log('Tentando buscar usuários...');
+      const users = await prisma.user.findMany();
+      console.log('Usuários encontrados:', users);
+      return res.json(users);
+    } catch (error) {
+      console.error('Erro detalhado ao listar usuários:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao listar usuários',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
 
   /**
    * @swagger
-   * /users:
+   * /user/test:
    *   post:
-   *     summary: Cria um novo usuário
+   *     summary: Cria um usuário de teste
    *     tags: [User]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *               email:
-   *                 type: string
-   *               password:
-   *                 type: string
-   *               type:
-   *                 type: string
-   *               profilePicture:
-   *                 type: string
    *     responses:
-   *       201:
+   *       200:
    *         description: Usuário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
    */
-  async create(req: Request, res: Response) {
-    const user = await this.userService.createUser(req.body);
-    return res.status(201).json(user);
+  async createTest(req: Request, res: Response) {
+    try {
+      console.log('Tentando criar usuário de teste...');
+      const user = await prisma.user.create({
+        data: {
+          name: 'Usuário Teste',
+          email: 'teste@teste.com',
+          password: '123456'
+        }
+      });
+      console.log('Usuário criado com sucesso:', user);
+      return res.json(user);
+    } catch (error) {
+      console.error('Erro detalhado ao criar usuário de teste:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário de teste',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
-
-  /**
-   * @swagger
-   * /users/{id}:
-   *   get:
-   *     summary: Busca um usuário por ID
-   *     tags: [User]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do usuário
-   *     responses:
-   *       200:
-   *         description: Dados do usuário
-   */
-  async getById(req: Request, res: Response) {
-    const user = await this.userService.getUserById(Number(req.params.id));
-    return res.json(user);
-  }
-
-  /**
-   * @swagger
-   * /users:
-   *   get:
-   *     summary: Busca um usuário pelo email
-   *     tags: [User]
-   *     parameters:
-   *       - in: query
-   *         name: email
-   *         schema:
-   *           type: string
-   *         required: true
-   *         description: Email do usuário
-   *     responses:
-   *       200:
-   *         description: Dados do usuário
-   */
-  async getByEmail(req: Request, res: Response) {
-    const user = await this.userService.getUserByEmail(req.query.email as string);
-    return res.json(user);
-  }
-
-  /**
-   * @swagger
-   * /users/{id}:
-   *   put:
-   *     summary: Atualiza um usuário
-   *     tags: [User]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do usuário
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *               email:
-   *                 type: string
-   *               password:
-   *                 type: string
-   *               type:
-   *                 type: string
-   *               profilePicture:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Usuário atualizado
-   */
-  async update(req: Request, res: Response) {
-    const user = await this.userService.updateUser(Number(req.params.id), req.body);
-    return res.json(user);
-  }
-
-  /**
-   * @swagger
-   * /users/{id}:
-   *   delete:
-   *     summary: Remove um usuário
-   *     tags: [User]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do usuário
-   *     responses:
-   *       204:
-   *         description: Usuário removido com sucesso
-   */
-  async delete(req: Request, res: Response) {
-    await this.userService.deleteUser(Number(req.params.id));
-    return res.status(204).send();
-  }
-} 
+}

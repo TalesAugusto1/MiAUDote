@@ -1,9 +1,12 @@
-import { Animal } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+type Animal = PrismaClient['animal']['payload']['default'];
 
 export interface IAnimalRepository {
-  create(data: Omit<Animal, 'id'>): Promise<Animal>;
+  create(data: Partial<Animal>): Promise<Animal>;
   findById(id: number): Promise<Animal | null>;
-  findByOngId(ongId: number): Promise<Animal[]>;
+  findAll(): Promise<Animal[]>;
+  findByOng(ongId: number): Promise<Animal[]>;
   update(id: number, data: Partial<Animal>): Promise<Animal>;
   delete(id: number): Promise<void>;
 } 
