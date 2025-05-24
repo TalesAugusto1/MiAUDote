@@ -1,10 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { IUserRepository } from '../interfaces/IUserRepository';
 
-type User = PrismaClient['user']['payload']['default'];
+type User = Prisma.UserGetPayload<{}>;
+type UserBasicInfo = {
+  id: number;
+  nome: string;
+  email: string;
+  senha: string;
+  adotante?: { id: number };
+  ong?: { id: number };
+};
 
 export class PrismaUserRepository implements IUserRepository {
-  private prisma = new PrismaClient();
+  constructor(private prisma: PrismaClient) {}
 
   async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     return this.prisma.user.create({ data });
@@ -24,5 +32,29 @@ export class PrismaUserRepository implements IUserRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.user.delete({ where: { id } });
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.prisma.user.findMany();
+  }
+
+  async createAdotante(data: { id: number; cpf: string; dataNascimento: Date }): Promise<any> {
+    return this.prisma.adotante.create({
+      data: {
+        id: data.id,
+        cpf: data.cpf,
+        dataNascimento: data.dataNascimento
+      }
+    });
+  }
+
+  async createOng(data: { id: number; cnpj: string; endereco: string }): Promise<any> {
+    return this.prisma.ong.create({
+      data: {
+        id: data.id,
+        cnpj: data.cnpj,
+        endereco: data.endereco
+      }
+    });
   }
 }

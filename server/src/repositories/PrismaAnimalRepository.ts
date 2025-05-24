@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { IAnimalRepository } from '../interfaces/IAnimalRepository';
 
-type Animal = PrismaClient['animal']['payload']['default'];
+type Animal = Prisma.AnimalGetPayload<{}>;
 
 export class PrismaAnimalRepository implements IAnimalRepository {
-  private prisma = new PrismaClient();
+  constructor(private prisma: PrismaClient) {}
 
   async create(data: Omit<Animal, 'id'>): Promise<Animal> {
     return this.prisma.animal.create({ data });
@@ -12,6 +12,10 @@ export class PrismaAnimalRepository implements IAnimalRepository {
 
   async findById(id: number): Promise<Animal | null> {
     return this.prisma.animal.findUnique({ where: { id } });
+  }
+
+  async findAll(): Promise<Animal[]> {
+    return this.prisma.animal.findMany();
   }
 
   async findByOng(ongId: number): Promise<Animal[]> {
@@ -24,9 +28,5 @@ export class PrismaAnimalRepository implements IAnimalRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.animal.delete({ where: { id } });
-  }
-
-  async findAll(): Promise<Animal[]> {
-    return this.prisma.animal.findMany();
   }
 } 

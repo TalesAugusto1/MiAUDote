@@ -1,11 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-type Adotante = PrismaClient['adotante']['payload']['default'];
+export type Adotante = Prisma.AdotanteGetPayload<{
+  include: {
+    user: true;
+  };
+}>;
 
 export interface IAdotanteRepository {
-  create(data: Omit<Adotante, 'id'>): Promise<Adotante>;
+  findAll(): Promise<Adotante[]>;
   findById(id: number): Promise<Adotante | null>;
-  findByCpf(cpf: string): Promise<Adotante | null>;
-  update(id: number, data: Partial<Adotante>): Promise<Adotante>;
+  create(data: Prisma.AdotanteCreateInput): Promise<Adotante>;
+  update(id: number, data: Prisma.AdotanteUpdateInput): Promise<Adotante>;
   delete(id: number): Promise<void>;
 } 

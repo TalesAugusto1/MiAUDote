@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { IFormularioRepository } from '../interfaces/IFormularioRepository';
 
-type Formulario = PrismaClient['formulario']['payload']['default'];
+type Formulario = Prisma.FormularioGetPayload<{}>;
 
 export class FormularioService {
   constructor(private formularioRepository: IFormularioRepository) {}
@@ -18,15 +18,15 @@ export class FormularioService {
     return this.formularioRepository.findByAdotante(idAdotante);
   }
 
-  async getFormulariosByAnimal(animalId: number): Promise<Formulario[]> {
-    return this.formularioRepository.findByAnimal(animalId);
-  }
-
   async updateFormulario(id: number, data: Partial<Formulario>): Promise<Formulario> {
     return this.formularioRepository.update(id, data);
   }
 
   async deleteFormulario(id: number): Promise<void> {
     await this.formularioRepository.delete(id);
+  }
+
+  async findAll() {
+    return this.formularioRepository.findAll();
   }
 } 

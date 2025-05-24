@@ -1,11 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-type Ong = PrismaClient['ong']['payload']['default'];
+export type Ong = Prisma.OngGetPayload<{
+  include: {
+    user: true;
+  };
+}>;
 
 export interface IOngRepository {
-  create(data: Omit<Ong, 'id'>): Promise<Ong>;
+  findAll(): Promise<Ong[]>;
   findById(id: number): Promise<Ong | null>;
   findByEmail(email: string): Promise<Ong | null>;
-  update(id: number, data: Partial<Ong>): Promise<Ong>;
+  create(data: Prisma.OngCreateInput): Promise<Ong>;
+  update(id: number, data: Prisma.OngUpdateInput): Promise<Ong>;
   delete(id: number): Promise<void>;
 } 

@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { IAdocaoRepository } from '../interfaces/IAdocaoRepository';
 
-type Adocao = PrismaClient['adocao']['payload']['default'];
+type Adocao = Prisma.AdocaoGetPayload<{}>;
 
 export class PrismaAdocaoRepository implements IAdocaoRepository {
-  private prisma = new PrismaClient();
+  constructor(private prisma: PrismaClient) {}
 
   async create(data: Omit<Adocao, 'id'>): Promise<Adocao> {
     return this.prisma.adocao.create({ data });
@@ -19,7 +19,13 @@ export class PrismaAdocaoRepository implements IAdocaoRepository {
   }
 
   async findByOng(ongId: number): Promise<Adocao[]> {
-    return this.prisma.adocao.findMany({ where: { idOng: ongId } });
+    return this.prisma.adocao.findMany({
+      where: {
+        animal: {
+          idOng: ongId
+        }
+      }
+    });
   }
 
   async findByAnimal(animalId: number): Promise<Adocao[]> {
@@ -32,5 +38,9 @@ export class PrismaAdocaoRepository implements IAdocaoRepository {
 
   async delete(id: number): Promise<void> {
     await this.prisma.adocao.delete({ where: { id } });
+  }
+
+  async findAll() {
+    return this.prisma.adocao.findMany();
   }
 } 

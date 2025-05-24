@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { IAdocaoRepository } from '../interfaces/IAdocaoRepository';
 
-type Adocao = PrismaClient['adocao']['payload']['default'];
+type Adocao = Prisma.AdocaoGetPayload<{}>;
 
 export class AdocaoService {
   constructor(private adocaoRepository: IAdocaoRepository) {}
@@ -32,5 +32,9 @@ export class AdocaoService {
 
   async deleteAdocao(id: number): Promise<void> {
     await this.adocaoRepository.delete(id);
+  }
+
+  async findAll() {
+    return this.adocaoRepository.findAll();
   }
 } 

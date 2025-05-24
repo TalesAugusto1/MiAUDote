@@ -1,12 +1,10 @@
-import { PrismaClient } from '@prisma/client';
-import { IAdotanteRepository } from '../interfaces/IAdotanteRepository';
-
-type Adotante = PrismaClient['adotante']['payload']['default'];
+import { Prisma } from '@prisma/client';
+import { Adotante, IAdotanteRepository } from '../interfaces/IAdotanteRepository';
 
 export class AdotanteService {
   constructor(private adotanteRepository: IAdotanteRepository) {}
 
-  async createAdotante(data: Omit<Adotante, 'id'>): Promise<Adotante> {
+  async createAdotante(data: Prisma.AdotanteCreateInput): Promise<Adotante> {
     return this.adotanteRepository.create(data);
   }
 
@@ -14,15 +12,19 @@ export class AdotanteService {
     return this.adotanteRepository.findById(id);
   }
 
-  async getAdotanteByCpf(cpf: string): Promise<Adotante | null> {
-    return this.adotanteRepository.findByCpf(cpf);
-  }
-
-  async updateAdotante(id: number, data: Partial<Adotante>): Promise<Adotante> {
+  async updateAdotante(id: number, data: Prisma.AdotanteUpdateInput): Promise<Adotante> {
     return this.adotanteRepository.update(id, data);
   }
 
   async deleteAdotante(id: number): Promise<void> {
     await this.adotanteRepository.delete(id);
+  }
+
+  async getAllAdotantes(): Promise<Adotante[]> {
+    return this.adotanteRepository.findAll();
+  }
+
+  async findAll() {
+    return this.adotanteRepository.findAll();
   }
 } 

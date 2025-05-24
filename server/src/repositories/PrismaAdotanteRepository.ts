@@ -1,28 +1,46 @@
-import { PrismaClient } from '@prisma/client';
-import { IAdotanteRepository } from '../interfaces/IAdotanteRepository';
-
-type Adotante = PrismaClient['adotante']['payload']['default'];
+import { Prisma, PrismaClient } from '@prisma/client';
+import { Adotante, IAdotanteRepository } from '../interfaces/IAdotanteRepository';
 
 export class PrismaAdotanteRepository implements IAdotanteRepository {
-  private prisma = new PrismaClient();
+  constructor(private prisma: PrismaClient) {}
 
-  async create(data: Omit<Adotante, 'id'>): Promise<Adotante> {
-    return this.prisma.adotante.create({ data });
+  async create(data: Prisma.AdotanteCreateInput): Promise<Adotante> {
+    return this.prisma.adotante.create({
+      data,
+      include: {
+        user: true
+      }
+    });
   }
 
   async findById(id: number): Promise<Adotante | null> {
-    return this.prisma.adotante.findUnique({ where: { id } });
+    return this.prisma.adotante.findUnique({
+      where: { id },
+      include: {
+        user: true
+      }
+    });
   }
 
-  async findByCpf(cpf: string): Promise<Adotante | null> {
-    return this.prisma.adotante.findFirst({ where: { cpf } });
-  }
-
-  async update(id: number, data: Partial<Adotante>): Promise<Adotante> {
-    return this.prisma.adotante.update({ where: { id }, data });
+  async update(id: number, data: Prisma.AdotanteUpdateInput): Promise<Adotante> {
+    return this.prisma.adotante.update({
+      where: { id },
+      data,
+      include: {
+        user: true
+      }
+    });
   }
 
   async delete(id: number): Promise<void> {
     await this.prisma.adotante.delete({ where: { id } });
+  }
+
+  async findAll(): Promise<Adotante[]> {
+    return this.prisma.adotante.findMany({
+      include: {
+        user: true
+      }
+    });
   }
 } 

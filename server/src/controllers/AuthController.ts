@@ -10,23 +10,22 @@ import { PrismaUserRepository } from '../repositories/PrismaUserRepository';
 import { AuthService } from '../services/AuthService';
 
 const registerSchema = z.object({
-  name: z.string().min(3),
+  nome: z.string().min(3),
   email: z.string().email(),
   confirmEmail: z.string().email(),
-  password: z.string().min(6),
-  confirmPassword: z.string().min(6),
-  profilePicture: z.string().optional(),
+  senha: z.string().min(6),
+  confirmSenha: z.string().min(6),
 }).refine((data) => data.email === data.confirmEmail, {
   message: "Os e-mails não coincidem",
   path: ["confirmEmail"],
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => data.senha === data.confirmSenha, {
   message: "As senhas não coincidem",
-  path: ["confirmPassword"],
+  path: ["confirmSenha"],
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  senha: z.string(),
 });
 
 /**
@@ -38,11 +37,9 @@ const loginSchema = z.object({
  *       properties:
  *         id:
  *           type: integer
- *         name:
+ *         nome:
  *           type: string
  *         email:
- *           type: string
- *         profilePicture:
  *           type: string
  *     AuthResponse:
  *       type: object
@@ -74,23 +71,21 @@ export class AuthController {
    *           schema:
    *             type: object
    *             required:
-   *               - name
+   *               - nome
    *               - email
    *               - confirmEmail
-   *               - password
-   *               - confirmPassword
+   *               - senha
+   *               - confirmSenha
    *             properties:
-   *               name:
+   *               nome:
    *                 type: string
    *               email:
    *                 type: string
    *               confirmEmail:
    *                 type: string
-   *               password:
+   *               senha:
    *                 type: string
-   *               confirmPassword:
-   *                 type: string
-   *               profilePicture:
+   *               confirmSenha:
    *                 type: string
    *     responses:
    *       201:
@@ -106,10 +101,9 @@ export class AuthController {
     try {
       const data = registerSchema.parse(req.body);
       const result = await this.authService.register({
-        name: data.name,
+        name: data.nome,
         email: data.email,
-        password: data.password,
-        profilePicture: data.profilePicture,
+        password: data.senha,
       });
       return res.status(201).json(result);
     } catch (error) {
@@ -134,11 +128,11 @@ export class AuthController {
    *             type: object
    *             required:
    *               - email
-   *               - password
+   *               - senha
    *             properties:
    *               email:
    *                 type: string
-   *               password:
+   *               senha:
    *                 type: string
    *     responses:
    *       200:

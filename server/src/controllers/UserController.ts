@@ -4,14 +4,12 @@
  *   name: User
  *   description: Gerenciamento de usuários
  */
-import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
-
-console.log('Inicializando PrismaClient...');
-const prisma = new PrismaClient();
-console.log('PrismaClient inicializado com sucesso');
+import { UserService } from '../services/UserService';
 
 export class UserController {
+  constructor(private userService: UserService) {}
+
   /**
    * @swagger
    * /user:
@@ -30,16 +28,10 @@ export class UserController {
    */
   async findAll(req: Request, res: Response) {
     try {
-      console.log('Tentando buscar usuários...');
-      const users = await prisma.user.findMany();
-      console.log('Usuários encontrados:', users);
+      const users = await this.userService.findAll();
       return res.json(users);
     } catch (error) {
-      console.error('Erro detalhado ao listar usuários:', error);
-      if (error instanceof Error) {
-        console.error('Mensagem de erro:', error.message);
-        console.error('Stack trace:', error.stack);
-      }
+      console.error('Erro ao listar usuários:', error);
       return res.status(500).json({ 
         error: 'Erro ao listar usuários',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -49,38 +41,222 @@ export class UserController {
 
   /**
    * @swagger
-   * /user/test:
+   * /user:
    *   post:
-   *     summary: Cria um usuário de teste
+   *     summary: Cria um novo usuário
    *     tags: [User]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               senha:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário criado com sucesso
+   */
+  async create(req: Request, res: Response) {
+    try {
+      const { nome, email, senha } = req.body;
+
+      if (!nome || !email || !senha) {
+        return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
+      }
+
+      const user = await this.userService.createUser({ nome, email, senha });
+      return res.status(201).json(user);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/adotante:
+   *   post:
+   *     summary: Cria um novo usuário e um adotante
+   *     tags: [User]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
+   *               - cpf
+   *               - dataNascimento
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               senha:
+   *                 type: string
+   *               cpf:
+   *                 type: string
+   *               dataNascimento:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       201:
+   *         description: Usuário e adotante criados com sucesso
+   */
+  async createWithAdotante(req: Request, res: Response) {
+    try {
+      const { nome, email, senha, cpf, dataNascimento } = req.body;
+
+      if (!nome || !email || !senha || !cpf || !dataNascimento) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const result = await this.userService.createUserWithAdotante({
+        nome,
+        email,
+        senha,
+        cpf,
+        dataNascimento: new Date(dataNascimento)
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Erro ao criar usuário e adotante:', error);
+      
+      if (error instanceof Error && error.message.includes('Unique constraint failed on the constraint: `User_email_key`')) {
+        return res.status(400).json({ 
+          error: 'Email já cadastrado',
+          details: 'Este email já está sendo usado por outro usuário'
+        });
+      }
+
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário e adotante',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/ong:
+   *   post:
+   *     summary: Cria um novo usuário e uma ONG
+   *     tags: [User]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
+   *               - cnpj
+   *               - endereco
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               senha:
+   *                 type: string
+   *               cnpj:
+   *                 type: string
+   *               endereco:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário e ONG criados com sucesso
+   */
+  async createWithOng(req: Request, res: Response) {
+    try {
+      const { nome, email, senha, cnpj, endereco } = req.body;
+
+      if (!nome || !email || !senha || !cnpj || !endereco) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const result = await this.userService.createUserWithOng({
+        nome,
+        email,
+        senha,
+        cnpj,
+        endereco
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Erro ao criar usuário e ONG:', error);
+      
+      if (error instanceof Error && error.message.includes('Unique constraint failed on the constraint: `User_email_key`')) {
+        return res.status(400).json({ 
+          error: 'Email já cadastrado',
+          details: 'Este email já está sendo usado por outro usuário'
+        });
+      }
+
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário e ONG',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/{id}:
+   *   get:
+   *     summary: Busca um usuário pelo ID
+   *     tags: [User]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         schema:
+   *           type: integer
+   *         required: true
+   *         description: ID do usuário
    *     responses:
    *       200:
-   *         description: Usuário criado com sucesso
+   *         description: Dados do usuário
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/User'
+   *       404:
+   *         description: Usuário não encontrado
    */
-  async createTest(req: Request, res: Response) {
+  async findById(req: Request, res: Response) {
     try {
-      console.log('Tentando criar usuário de teste...');
-      const user = await prisma.user.create({
-        data: {
-          name: 'Usuário Teste',
-          email: 'teste@teste.com',
-          password: '123456'
-        }
-      });
-      console.log('Usuário criado com sucesso:', user);
+      const id = Number(req.params.id);
+      const user = await this.userService.getUserById(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
       return res.json(user);
     } catch (error) {
-      console.error('Erro detalhado ao criar usuário de teste:', error);
-      if (error instanceof Error) {
-        console.error('Mensagem de erro:', error.message);
-        console.error('Stack trace:', error.stack);
-      }
+      console.error('Erro ao buscar usuário:', error);
       return res.status(500).json({ 
-        error: 'Erro ao criar usuário de teste',
+        error: 'Erro ao buscar usuário',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }

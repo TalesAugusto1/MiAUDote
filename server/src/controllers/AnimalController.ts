@@ -6,12 +6,15 @@
  */
 import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
+import { AnimalService } from '../services/AnimalService';
 
 console.log('Inicializando PrismaClient para Animal...');
 const prisma = new PrismaClient();
 console.log('PrismaClient inicializado com sucesso para Animal');
 
 export class AnimalController {
+  constructor(private animalService: AnimalService) {}
+
   /**
    * @swagger
    * /animal:
@@ -30,16 +33,10 @@ export class AnimalController {
    */
   async findAll(req: Request, res: Response) {
     try {
-      console.log('Tentando buscar animais...');
-      const animais = await prisma.animal.findMany();
-      console.log('Animais encontrados:', animais);
+      const animais = await this.animalService.findAll();
       return res.json(animais);
     } catch (error) {
-      console.error('Erro detalhado ao listar animais:', error);
-      if (error instanceof Error) {
-        console.error('Mensagem de erro:', error.message);
-        console.error('Stack trace:', error.stack);
-      }
+      console.error('Erro ao listar animais:', error);
       return res.status(500).json({ 
         error: 'Erro ao listar animais',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -110,13 +107,13 @@ export class AnimalController {
       console.log('Tentando criar animal de teste...');
       const animal = await prisma.animal.create({
         data: {
-          name: 'Animal Teste',
-          species: 'Cachorro',
-          breed: 'Vira-lata',
-          age: 2,
-          description: 'Animal de teste',
-          imageUrl: 'https://example.com/image.jpg',
-          status: 'disponivel'
+          nome: 'Animal Teste',
+          tipo: 'Cachorro',
+          sexo: 'Macho',
+          idade: 2,
+          porte: 'Médio',
+          raca: 'Vira-lata',
+          idOng: 1
         }
       });
       console.log('Animal criado com sucesso:', animal);
@@ -129,6 +126,73 @@ export class AnimalController {
       }
       return res.status(500).json({ 
         error: 'Erro ao criar animal de teste',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /animal:
+   *   post:
+   *     summary: Cria um novo animal
+   *     tags: [Animal]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nome
+   *               - tipo
+   *               - sexo
+   *               - idade
+   *               - porte
+   *               - raca
+   *               - idOng
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               tipo:
+   *                 type: string
+   *               sexo:
+   *                 type: string
+   *               idade:
+   *                 type: integer
+   *               porte:
+   *                 type: string
+   *               raca:
+   *                 type: string
+   *               idOng:
+   *                 type: integer
+   *     responses:
+   *       201:
+   *         description: Animal criado com sucesso
+   */
+  async create(req: Request, res: Response) {
+    try {
+      const { nome, tipo, sexo, idade, porte, raca, idOng } = req.body;
+
+      if (!nome || !tipo || !sexo || !idade || !porte || !raca || !idOng) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const animal = await this.animalService.createAnimal({
+        nome,
+        tipo,
+        sexo,
+        idade: Number(idade),
+        porte,
+        raca,
+        idOng: Number(idOng)
+      });
+
+      return res.status(201).json(animal);
+    } catch (error) {
+      console.error('Erro ao criar animal:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao criar animal',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }

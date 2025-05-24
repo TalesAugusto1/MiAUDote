@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { IAnimalRepository } from '../interfaces/IAnimalRepository';
 
-type Animal = PrismaClient['animal']['payload']['default'];
+type Animal = Prisma.AnimalGetPayload<{}>;
 
 export class AnimalService {
   constructor(private animalRepository: IAnimalRepository) {}
@@ -28,5 +28,9 @@ export class AnimalService {
 
   async deleteAnimal(id: number): Promise<void> {
     await this.animalRepository.delete(id);
+  }
+
+  async findAll() {
+    return this.animalRepository.findAll();
   }
 } 

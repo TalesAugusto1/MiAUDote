@@ -23,8 +23,9 @@ model Adotante {
   cpf            String
   dataNascimento DateTime
 
-  user    User     @relation("UserAdotante", fields: [id], references: [id])
-  adocoes Adocao[] @relation("AdotanteAdocoes")
+  user       User        @relation("UserAdotante", fields: [id], references: [id])
+  adocoes    Adocao[]    @relation("AdotanteAdocoes")
+  formularios Formulario[]
 }
 
 model Ong {
@@ -60,4 +61,14 @@ model Adocao {
 
   adotante Adotante @relation(fields: [idAdotante], references: [id], name: "AdotanteAdocoes")
   animal   Animal   @relation(fields: [idAnimal], references: [id], name: "AnimalAdocoes")
+}
+
+model Formulario {
+  id             Int      @id @default(autoincrement())
+  idAdotante     Int
+  nomeAdotante   String
+  ongResponsavel String
+  dataEnvio      DateTime @default(now())
+
+  adotante Adotante @relation(fields: [idAdotante], references: [id])
 }

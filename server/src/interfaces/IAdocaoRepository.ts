@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-type Adocao = PrismaClient['adocao']['payload']['default'];
+type Adocao = Prisma.AdocaoGetPayload<{}>;
 
 export interface IAdocaoRepository {
   create(data: Omit<Adocao, 'id'>): Promise<Adocao>;
@@ -10,4 +10,5 @@ export interface IAdocaoRepository {
   findByAnimal(animalId: number): Promise<Adocao[]>;
   update(id: number, data: Partial<Adocao>): Promise<Adocao>;
   delete(id: number): Promise<void>;
+  findAll(): Promise<any[]>;
 } 

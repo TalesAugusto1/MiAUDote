@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../interfaces/IUserRepository';
 
-type User = PrismaClient['user']['payload']['default'];
+type User = Prisma.UserGetPayload<{}>;
 
 const SECRET_KEY = process.env.JWT_SECRET || 'miAuDoteSecret';
 
