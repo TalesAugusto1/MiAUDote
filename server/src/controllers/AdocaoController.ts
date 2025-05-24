@@ -5,45 +5,49 @@
  *   description: Gerenciamento de adoções
  */
 
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { AdocaoService } from '../services/AdocaoService';
+
+console.log('Inicializando PrismaClient para Adocao...');
+const prisma = new PrismaClient();
+console.log('PrismaClient inicializado com sucesso para Adocao');
 
 export class AdocaoController {
   constructor(private adocaoService: AdocaoService) {}
 
   /**
    * @swagger
-   * /adocoes:
-   *   post:
-   *     summary: Cria uma nova adoção
+   * /adocao:
+   *   get:
+   *     summary: Lista todas as adoções
    *     tags: [Adocao]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               animalId:
-   *                 type: integer
-   *               adotanteId:
-   *                 type: integer
-   *               ongId:
-   *                 type: integer
-   *               status:
-   *                 type: string
    *     responses:
-   *       201:
-   *         description: Adoção criada com sucesso
+   *       200:
+   *         description: Lista de adoções
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Adocao'
    */
-  async create(req: Request, res: Response) {
-    const adocao = await this.adocaoService.createAdocao(req.body);
-    return res.status(201).json(adocao);
+  async findAll(req: Request, res: Response) {
+    try {
+      const adocoes = await this.adocaoService.findAll();
+      return res.json(adocoes);
+    } catch (error) {
+      console.error('Erro ao listar adoções:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao listar adoções',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /adocoes/{id}:
+   * /adocao/{id}:
    *   get:
    *     summary: Busca uma adoção por ID
    *     tags: [Adocao]
@@ -58,105 +62,128 @@ export class AdocaoController {
    *       200:
    *         description: Dados da adoção
    */
-  async getById(req: Request, res: Response) {
-    const adocao = await this.adocaoService.getAdocaoById(Number(req.params.id));
-    return res.json(adocao);
+  async findById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      console.log('Tentando buscar adoção com ID:', id);
+      const adocao = await prisma.adocao.findUnique({
+        where: { id: Number(id) }
+      });
+      
+      if (!adocao) {
+        return res.status(404).json({ error: 'Adoção não encontrada' });
+      }
+      
+      console.log('Adoção encontrada:', adocao);
+      return res.json(adocao);
+    } catch (error) {
+      console.error('Erro detalhado ao buscar adoção:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao buscar adoção',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /adocoes:
-   *   get:
-   *     summary: Lista adoções por adotanteId, ongId ou animalId
+   * /adocao/test:
+   *   post:
+   *     summary: Cria uma adoção de teste
    *     tags: [Adocao]
-   *     parameters:
-   *       - in: query
-   *         name: adotanteId
-   *         schema:
-   *           type: integer
-   *         required: false
-   *         description: ID do adotante
-   *       - in: query
-   *         name: ongId
-   *         schema:
-   *           type: integer
-   *         required: false
-   *         description: ID da ONG
-   *       - in: query
-   *         name: animalId
-   *         schema:
-   *           type: integer
-   *         required: false
-   *         description: ID do animal
    *     responses:
    *       200:
-   *         description: Lista de adoções
+   *         description: Adoção criada com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Adocao'
    */
-  async getByAdotanteId(req: Request, res: Response) {
-    const adocoes = await this.adocaoService.getAdocoesByAdotanteId(Number(req.query.adotanteId));
-    return res.json(adocoes);
-  }
-
-  async getByOngId(req: Request, res: Response) {
-    const adocoes = await this.adocaoService.getAdocoesByOngId(Number(req.query.ongId));
-    return res.json(adocoes);
-  }
-
-  async getByAnimalId(req: Request, res: Response) {
-    const adocoes = await this.adocaoService.getAdocoesByAnimalId(Number(req.query.animalId));
-    return res.json(adocoes);
+  async createTest(req: Request, res: Response) {
+    try {
+      console.log('Tentando criar adoção de teste...');
+      const adocao = await prisma.adocao.create({
+        data: {
+          idAdotante: 1,
+          idAnimal: 1,
+          dataSolicitacao: new Date(),
+          status: 'pendente'
+        }
+      });
+      console.log('Adoção criada com sucesso:', adocao);
+      return res.json(adocao);
+    } catch (error) {
+      console.error('Erro detalhado ao criar adoção de teste:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao criar adoção de teste',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /adocoes/{id}:
-   *   put:
-   *     summary: Atualiza uma adoção
+   * /adocao:
+   *   post:
+   *     summary: Cria uma nova adoção
    *     tags: [Adocao]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID da adoção
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - idAdotante
+   *               - idAnimal
+   *               - dataSolicitacao
+   *               - status
    *             properties:
+   *               idAdotante:
+   *                 type: integer
+   *               idAnimal:
+   *                 type: integer
+   *               dataSolicitacao:
+   *                 type: string
+   *                 format: date-time
    *               status:
    *                 type: string
    *     responses:
-   *       200:
-   *         description: Adoção atualizada
+   *       201:
+   *         description: Adoção criada com sucesso
    */
-  async update(req: Request, res: Response) {
-    const adocao = await this.adocaoService.updateAdocao(Number(req.params.id), req.body);
-    return res.json(adocao);
-  }
+  async create(req: Request, res: Response) {
+    try {
+      const { idAdotante, idAnimal, dataSolicitacao, status } = req.body;
 
-  /**
-   * @swagger
-   * /adocoes/{id}:
-   *   delete:
-   *     summary: Remove uma adoção
-   *     tags: [Adocao]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID da adoção
-   *     responses:
-   *       204:
-   *         description: Adoção removida com sucesso
-   */
-  async delete(req: Request, res: Response) {
-    await this.adocaoService.deleteAdocao(Number(req.params.id));
-    return res.status(204).send();
+      if (!idAdotante || !idAnimal || !dataSolicitacao || !status) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const adocao = await prisma.adocao.create({
+        data: {
+          idAdotante: Number(idAdotante),
+          idAnimal: Number(idAnimal),
+          dataSolicitacao: new Date(dataSolicitacao),
+          status
+        }
+      });
+
+      return res.status(201).json(adocao);
+    } catch (error) {
+      console.error('Erro ao criar adoção:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao criar adoção',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 } 

@@ -1,14 +1,13 @@
 export interface IAuthStrategy {
   authenticate(credentials: {
     email: string;
-    password: string;
+    senha: string;
   }): Promise<{
     token: string;
     user: {
       id: number;
-      name: string;
+      nome: string;
       email: string;
-      profilePicture?: string;
     };
   }>;
 } 

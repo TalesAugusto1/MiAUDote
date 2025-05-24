@@ -12,7 +12,36 @@ export class UserController {
 
   /**
    * @swagger
-   * /users:
+   * /user:
+   *   get:
+   *     summary: Lista todos os usuários
+   *     tags: [User]
+   *     responses:
+   *       200:
+   *         description: Lista de usuários
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/User'
+   */
+  async findAll(req: Request, res: Response) {
+    try {
+      const users = await this.userService.findAll();
+      return res.json(users);
+    } catch (error) {
+      console.error('Erro ao listar usuários:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao listar usuários',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user:
    *   post:
    *     summary: Cria um novo usuário
    *     tags: [User]
@@ -22,114 +51,180 @@ export class UserController {
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
    *             properties:
-   *               name:
+   *               nome:
    *                 type: string
    *               email:
    *                 type: string
-   *               password:
-   *                 type: string
-   *               type:
-   *                 type: string
-   *               profilePicture:
+   *               senha:
    *                 type: string
    *     responses:
    *       201:
    *         description: Usuário criado com sucesso
    */
   async create(req: Request, res: Response) {
-    const user = await this.userService.createUser(req.body);
-    return res.status(201).json(user);
+    try {
+      const { nome, email, senha } = req.body;
+
+      if (!nome || !email || !senha) {
+        return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
+      }
+
+      const user = await this.userService.createUser({ nome, email, senha });
+      return res.status(201).json(user);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /users/{id}:
-   *   get:
-   *     summary: Busca um usuário por ID
+   * /user/adotante:
+   *   post:
+   *     summary: Cria um novo usuário e um adotante
    *     tags: [User]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do usuário
-   *     responses:
-   *       200:
-   *         description: Dados do usuário
-   */
-  async getById(req: Request, res: Response) {
-    const user = await this.userService.getUserById(Number(req.params.id));
-    return res.json(user);
-  }
-
-  /**
-   * @swagger
-   * /users:
-   *   get:
-   *     summary: Busca um usuário pelo email
-   *     tags: [User]
-   *     parameters:
-   *       - in: query
-   *         name: email
-   *         schema:
-   *           type: string
-   *         required: true
-   *         description: Email do usuário
-   *     responses:
-   *       200:
-   *         description: Dados do usuário
-   */
-  async getByEmail(req: Request, res: Response) {
-    const user = await this.userService.getUserByEmail(req.query.email as string);
-    return res.json(user);
-  }
-
-  /**
-   * @swagger
-   * /users/{id}:
-   *   put:
-   *     summary: Atualiza um usuário
-   *     tags: [User]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do usuário
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
+   *               - cpf
+   *               - dataNascimento
    *             properties:
-   *               name:
+   *               nome:
    *                 type: string
    *               email:
    *                 type: string
-   *               password:
+   *               senha:
    *                 type: string
-   *               type:
+   *               cpf:
    *                 type: string
-   *               profilePicture:
+   *               dataNascimento:
    *                 type: string
+   *                 format: date-time
    *     responses:
-   *       200:
-   *         description: Usuário atualizado
+   *       201:
+   *         description: Usuário e adotante criados com sucesso
    */
-  async update(req: Request, res: Response) {
-    const user = await this.userService.updateUser(Number(req.params.id), req.body);
-    return res.json(user);
+  async createWithAdotante(req: Request, res: Response) {
+    try {
+      const { nome, email, senha, cpf, dataNascimento } = req.body;
+
+      if (!nome || !email || !senha || !cpf || !dataNascimento) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const result = await this.userService.createUserWithAdotante({
+        nome,
+        email,
+        senha,
+        cpf,
+        dataNascimento: new Date(dataNascimento)
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Erro ao criar usuário e adotante:', error);
+      
+      if (error instanceof Error && error.message.includes('Unique constraint failed on the constraint: `User_email_key`')) {
+        return res.status(400).json({ 
+          error: 'Email já cadastrado',
+          details: 'Este email já está sendo usado por outro usuário'
+        });
+      }
+
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário e adotante',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /users/{id}:
-   *   delete:
-   *     summary: Remove um usuário
+   * /user/ong:
+   *   post:
+   *     summary: Cria um novo usuário e uma ONG
+   *     tags: [User]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nome
+   *               - email
+   *               - senha
+   *               - cnpj
+   *               - endereco
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               senha:
+   *                 type: string
+   *               cnpj:
+   *                 type: string
+   *               endereco:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Usuário e ONG criados com sucesso
+   */
+  async createWithOng(req: Request, res: Response) {
+    try {
+      const { nome, email, senha, cnpj, endereco } = req.body;
+
+      if (!nome || !email || !senha || !cnpj || !endereco) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const result = await this.userService.createUserWithOng({
+        nome,
+        email,
+        senha,
+        cnpj,
+        endereco
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Erro ao criar usuário e ONG:', error);
+      
+      if (error instanceof Error && error.message.includes('Unique constraint failed on the constraint: `User_email_key`')) {
+        return res.status(400).json({ 
+          error: 'Email já cadastrado',
+          details: 'Este email já está sendo usado por outro usuário'
+        });
+      }
+
+      return res.status(500).json({ 
+        error: 'Erro ao criar usuário e ONG',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /user/{id}:
+   *   get:
+   *     summary: Busca um usuário pelo ID
    *     tags: [User]
    *     parameters:
    *       - in: path
@@ -139,11 +234,31 @@ export class UserController {
    *         required: true
    *         description: ID do usuário
    *     responses:
-   *       204:
-   *         description: Usuário removido com sucesso
+   *       200:
+   *         description: Dados do usuário
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
+   *       404:
+   *         description: Usuário não encontrado
    */
-  async delete(req: Request, res: Response) {
-    await this.userService.deleteUser(Number(req.params.id));
-    return res.status(204).send();
+  async findById(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      const user = await this.userService.getUserById(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      return res.json(user);
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao buscar usuário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
-} 
+}

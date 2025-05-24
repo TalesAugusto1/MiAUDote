@@ -1,129 +1,116 @@
+import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
-import 'dotenv/config';
-import express from 'express';
+import express, { RequestHandler, Router } from 'express';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './config/swagger';
-import { AuthController } from './controllers/AuthController';
-import { UserController } from './controllers/UserController';
-import { PrismaUserRepository } from './repositories/PrismaUserRepository';
-import { AuthService } from './services/AuthService';
-import { UserService } from './services/UserService';
-import { JwtAuthStrategy } from './strategies/JwtAuthStrategy';
-
-// Novos imports para AdotanteUser e OngUser
-import { AdotanteUserController } from './controllers/AdotanteUserController';
-import { OngUserController } from './controllers/OngUserController';
-import { PrismaAdotanteUserRepository } from './repositories/PrismaAdotanteUserRepository';
-import { PrismaOngUserRepository } from './repositories/PrismaOngUserRepository';
-import { AdotanteUserService } from './services/AdotanteUserService';
-import { OngUserService } from './services/OngUserService';
-
-// Animal
-import { AnimalController } from './controllers/AnimalController';
-import { PrismaAnimalRepository } from './repositories/PrismaAnimalRepository';
-import { AnimalService } from './services/AnimalService';
-
-// Adocao
+import { specs } from './config/swagger';
 import { AdocaoController } from './controllers/AdocaoController';
-import { PrismaAdocaoRepository } from './repositories/PrismaAdocaoRepository';
-import { AdocaoService } from './services/AdocaoService';
-
-// Formulario
+import { AdotanteController } from './controllers/AdotanteController';
+import { AnimalController } from './controllers/AnimalController';
 import { FormularioController } from './controllers/FormularioController';
+import { OngController } from './controllers/OngController';
+import { UserController } from './controllers/UserController';
+import { PrismaAdocaoRepository } from './repositories/PrismaAdocaoRepository';
+import { PrismaAdotanteRepository } from './repositories/PrismaAdotanteRepository';
+import { PrismaAnimalRepository } from './repositories/PrismaAnimalRepository';
 import { PrismaFormularioRepository } from './repositories/PrismaFormularioRepository';
+import { PrismaOngRepository } from './repositories/PrismaOngRepository';
+import { PrismaUserRepository } from './repositories/PrismaUserRepository';
+import { AdocaoService } from './services/AdocaoService';
+import { AdotanteService } from './services/AdotanteService';
+import { AnimalService } from './services/AnimalService';
 import { FormularioService } from './services/FormularioService';
+import { OngService } from './services/OngService';
+import { UserService } from './services/UserService';
 
 const app = express();
+const router = Router();
+const prisma = new PrismaClient();
 
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
-app.use(express.json());
+// Repositories
+const userRepository = new PrismaUserRepository(prisma);
+const adotanteRepository = new PrismaAdotanteRepository(prisma);
+const ongRepository = new PrismaOngRepository(prisma);
+const animalRepository = new PrismaAnimalRepository(prisma);
+const adocaoRepository = new PrismaAdocaoRepository(prisma);
+const formularioRepository = new PrismaFormularioRepository(prisma);
 
-// Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Inicialização das dependências
-const userRepository = new PrismaUserRepository();
-const authStrategy = new JwtAuthStrategy(userRepository, process.env.JWT_SECRET!);
-const authService = new AuthService(userRepository, authStrategy);
-const authController = new AuthController(authService);
+// Services
 const userService = new UserService(userRepository);
-const userController = new UserController(userService);
-
-// AdotanteUser
-const adotanteUserRepository = new PrismaAdotanteUserRepository();
-const adotanteUserService = new AdotanteUserService(adotanteUserRepository);
-const adotanteUserController = new AdotanteUserController(adotanteUserService);
-
-// OngUser
-const ongUserRepository = new PrismaOngUserRepository();
-const ongUserService = new OngUserService(ongUserRepository);
-const ongUserController = new OngUserController(ongUserService);
-
-// Animal
-const animalRepository = new PrismaAnimalRepository();
+const adotanteService = new AdotanteService(adotanteRepository);
+const ongService = new OngService(ongRepository);
 const animalService = new AnimalService(animalRepository);
-const animalController = new AnimalController(animalService);
-
-// Adocao
-const adocaoRepository = new PrismaAdocaoRepository();
 const adocaoService = new AdocaoService(adocaoRepository);
-const adocaoController = new AdocaoController(adocaoService);
-
-// Formulario
-const formularioRepository = new PrismaFormularioRepository();
 const formularioService = new FormularioService(formularioRepository);
+
+// Controllers
+const userController = new UserController(userService);
+const adotanteController = new AdotanteController(adotanteService);
+const ongController = new OngController(ongService);
+const animalController = new AnimalController(animalService);
+const adocaoController = new AdocaoController(adocaoService);
 const formularioController = new FormularioController(formularioService);
 
-// Rotas Auth
-app.post('/auth/register', (req, res) => authController.register(req, res));
-app.post('/auth/login', (req, res) => authController.login(req, res));
+app.use(cors());
+app.use(express.json());
 
-// Rotas User
-app.post('/users', (req, res) => userController.create(req, res));
-app.get('/users/:id', (req, res) => userController.getById(req, res));
-app.get('/users', (req, res) => userController.getByEmail(req, res));
-app.put('/users/:id', (req, res) => userController.update(req, res));
-app.delete('/users/:id', (req, res) => userController.delete(req, res));
+// Configuração do Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// Rotas AdotanteUser
-app.post('/adotantes', (req, res) => adotanteUserController.create(req, res));
-app.get('/adotantes/:id', (req, res) => adotanteUserController.getById(req, res));
-app.get('/adotantes', (req, res) => adotanteUserController.getByUserId(req, res));
-app.put('/adotantes/:id', (req, res) => adotanteUserController.update(req, res));
-app.delete('/adotantes/:id', (req, res) => adotanteUserController.delete(req, res));
+// Rotas de usuário
+app.post('/user', userController.create.bind(userController));
+app.post('/user/adotante', userController.createWithAdotante.bind(userController));
+app.post('/user/ong', userController.createWithOng.bind(userController));
+app.get('/user/:id', userController.findById.bind(userController));
+app.get('/user', userController.findAll.bind(userController));
 
-// Rotas OngUser
-app.post('/ongs', (req, res) => ongUserController.create(req, res));
-app.get('/ongs/:id', (req, res) => ongUserController.getById(req, res));
-app.get('/ongs', (req, res) => ongUserController.getByUserId(req, res));
-app.put('/ongs/:id', (req, res) => ongUserController.update(req, res));
-app.delete('/ongs/:id', (req, res) => ongUserController.delete(req, res));
+// Rotas de adotante
+app.get('/adotante', adotanteController.findAll.bind(adotanteController));
+app.get('/adotante/:id', adotanteController.getById.bind(adotanteController));
+app.delete('/adotante/:id', adotanteController.delete.bind(adotanteController));
 
-// Rotas Animal
-app.post('/animais', (req, res) => animalController.create(req, res));
-app.get('/animais/:id', (req, res) => animalController.getById(req, res));
-app.get('/animais', (req, res) => animalController.getByOngId(req, res));
-app.put('/animais/:id', (req, res) => animalController.update(req, res));
-app.delete('/animais/:id', (req, res) => animalController.delete(req, res));
+// Rotas de ONG
+app.get('/ong', ongController.findAll.bind(ongController));
+app.get('/ong/:id', ongController.getById.bind(ongController));
+app.delete('/ong/:id', ongController.delete.bind(ongController));
 
-// Rotas Adocao
-app.post('/adocoes', (req, res) => adocaoController.create(req, res));
-app.get('/adocoes/:id', (req, res) => adocaoController.getById(req, res));
-app.get('/adocoes', (req, res) => {
-  if (req.query.adotanteId) return adocaoController.getByAdotanteId(req, res);
-  if (req.query.ongId) return adocaoController.getByOngId(req, res);
-  if (req.query.animalId) return adocaoController.getByAnimalId(req, res);
-  return res.status(400).json({ error: 'Parâmetro de busca não informado.' });
-});
-app.put('/adocoes/:id', (req, res) => adocaoController.update(req, res));
-app.delete('/adocoes/:id', (req, res) => adocaoController.delete(req, res));
+// Rotas de animal
+app.get('/animal', animalController.findAll.bind(animalController));
+app.post('/animal', animalController.create.bind(animalController));
 
-// Rotas Formulario
-app.post('/formularios', (req, res) => formularioController.create(req, res));
-app.get('/formularios/:id', (req, res) => formularioController.getById(req, res));
-app.get('/formularios', (req, res) => formularioController.getByAdotanteUserId(req, res));
-app.put('/formularios/:id', (req, res) => formularioController.update(req, res));
-app.delete('/formularios/:id', (req, res) => formularioController.delete(req, res));
+// Rotas de adoção
+app.get('/adocao', adocaoController.findAll.bind(adocaoController));
+
+// Rotas de formulário
+app.get('/formulario', formularioController.findAll.bind(formularioController));
+
+// Rota para listar tudo
+const listAllHandler: RequestHandler = async (req, res) => {
+  try {
+    const [users, animais, adocoes, formularios] = await Promise.all([
+      userService.findAll(),
+      animalService.findAll(),
+      adocaoService.findAll(),
+      formularioService.findAll()
+    ]);
+
+    res.json({
+      users,
+      animais,
+      adocoes,
+      formularios
+    });
+  } catch (error) {
+    console.error('Erro ao listar todos os dados:', error);
+    res.status(500).json({ 
+      error: 'Erro ao listar todos os dados',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+};
+
+app.get('/all', listAllHandler);
+
+app.use(router);
 
 const PORT = process.env.PORT || 3333;
 

@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,84 +9,66 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  password   String
-  type       String   // 'adotante' ou 'ong'
-  profilePicture String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  adotante   AdotanteUser?
-  ong        OngUser?
-  posts      Post[]
+  id    Int    @id @default(autoincrement())
+  nome  String
+  email String @unique
+  senha String
+
+  adotante Adotante? @relation("UserAdotante")
+  ong      Ong?      @relation("UserOng")
 }
 
-model AdotanteUser {
-  id             Int     @id @default(autoincrement())
-  userId         Int     @unique
+model Adotante {
+  id             Int      @id
   cpf            String
-  formRespondido Boolean @default(false)
-  user           User    @relation(fields: [userId], references: [id])
-  formulario     Formulario?
-  adocoes        Adocao[]
+  dataNascimento DateTime
+
+  user       User        @relation("UserAdotante", fields: [id], references: [id])
+  adocoes    Adocao[]    @relation("AdotanteAdocoes")
+  formularios Formulario[]
 }
 
-model OngUser {
-  id        Int    @id @default(autoincrement())
-  userId    Int    @unique
-  cnpj      String
-  endereco  String
-  whatsapp  String
-  user      User   @relation(fields: [userId], references: [id])
-  animais   Animal[]
-  adocoes   Adocao[]
+model Ong {
+  id       Int    @id
+  cnpj     String
+  endereco String
+
+  user    User     @relation("UserOng", fields: [id], references: [id])
+  animais Animal[]
 }
 
 model Animal {
-  id         Int      @id @default(autoincrement())
-  ongId      Int
-  name       String
-  tipo       String
-  raca       String
-  sexo       String
-  porte      String
-  idade      Int
-  descricao  String
-  images     String   @db.Text
-  ong        OngUser @relation(fields: [ongId], references: [id])
-  adocoes    Adocao[]
-}
+  id    Int    @id @default(autoincrement())
+  nome  String
+  tipo  String
+  sexo  String
+  idade Int
+  porte String
+  raca  String
 
-model Formulario {
-  id                  Int     @id @default(autoincrement())
-  adotanteUserId      Int     @unique
-  mediaSalarial       String
-  temQuintal          Boolean
-  possuiOutrosAnimais Boolean
-  animais             String  @db.Text // JSON com os animais
-  imovel              String  // casa ou apartamento
-  adotante            AdotanteUser @relation(fields: [adotanteUserId], references: [id])
+  idOng Int
+  ong   Ong @relation(fields: [idOng], references: [id])
+
+  adocoes Adocao[] @relation("AnimalAdocoes")
 }
 
 model Adocao {
-  id         Int      @id @default(autoincrement())
-  animalId   Int
-  adotanteId Int
-  ongId      Int
-  status     String
-  animal     Animal      @relation(fields: [animalId], references: [id])
-  adotante   AdotanteUser @relation(fields: [adotanteId], references: [id])
-  ong        OngUser     @relation(fields: [ongId], references: [id])
+  id              Int      @id @default(autoincrement())
+  idAdotante      Int
+  idAnimal        Int
+  dataSolicitacao DateTime
+  status          String
+
+  adotante Adotante @relation(fields: [idAdotante], references: [id], name: "AdotanteAdocoes")
+  animal   Animal   @relation(fields: [idAnimal], references: [id], name: "AnimalAdocoes")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String
-  images    String   @db.Text
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-} 
+model Formulario {
+  id             Int      @id @default(autoincrement())
+  idAdotante     Int
+  nomeAdotante   String
+  ongResponsavel String
+  dataEnvio      DateTime @default(now())
+
+  adotante Adotante @relation(fields: [idAdotante], references: [id])
+}

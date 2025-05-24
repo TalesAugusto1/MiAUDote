@@ -1,43 +1,42 @@
-import { hash } from 'bcryptjs';
+import { Prisma } from '@prisma/client';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../interfaces/IUserRepository';
-import { IAuthStrategy } from '../strategies/IAuthStrategy';
+
+type User = Prisma.UserGetPayload<{}>;
+
+const SECRET_KEY = process.env.JWT_SECRET || 'miAuDoteSecret';
 
 export class AuthService {
-  constructor(
-    private userRepository: IUserRepository,
-    private authStrategy: IAuthStrategy
-  ) {}
+  constructor(private userRepository: IUserRepository) {}
 
-  async register(data: {
-    name: string;
-    email: string;
-    password: string;
-    profilePicture?: string;
-  }) {
-    const existingUser = await this.userRepository.findByEmail(data.email);
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) return null;
 
-    if (existingUser) {
-      throw new Error('Email já cadastrado');
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) return null;
+
+    return user;
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.validateUser(email, password);
+    if (!user) {
+      throw new Error('Invalid credentials');
     }
 
-    const hashedPassword = await hash(data.password, 8);
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      SECRET_KEY,
+      { expiresIn: '24h' }
+    );
 
-    const user = await this.userRepository.create({
-      ...data,
-      password: hashedPassword,
-    });
-
-    return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture,
-      },
-    };
+    return { token };
   }
-
-  async login(credentials: { email: string; password: string }) {
-    return this.authStrategy.authenticate(credentials);
-  }
-} 
+}

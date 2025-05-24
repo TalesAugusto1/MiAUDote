@@ -2,51 +2,49 @@
  * @swagger
  * tags:
  *   name: Formulario
- *   description: Gerenciamento de formulários de adoção
+ *   description: Gerenciamento de formulários
  */
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { FormularioService } from '../services/FormularioService';
+
+const prisma = new PrismaClient();
 
 export class FormularioController {
   constructor(private formularioService: FormularioService) {}
 
   /**
    * @swagger
-   * /formularios:
-   *   post:
-   *     summary: Cria um novo formulário
+   * /formulario:
+   *   get:
+   *     summary: Lista todos os formulários
    *     tags: [Formulario]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               adotanteUserId:
-   *                 type: integer
-   *               mediaSalarial:
-   *                 type: string
-   *               temQuintal:
-   *                 type: boolean
-   *               possuiOutrosAnimais:
-   *                 type: boolean
-   *               animais:
-   *                 type: string
-   *               imovel:
-   *                 type: string
    *     responses:
-   *       201:
-   *         description: Formulário criado com sucesso
+   *       200:
+   *         description: Lista de formulários
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Formulario'
    */
-  async create(req: Request, res: Response) {
-    const formulario = await this.formularioService.createFormulario(req.body);
-    return res.status(201).json(formulario);
+  async findAll(req: Request, res: Response) {
+    try {
+      const formularios = await this.formularioService.findAll();
+      return res.json(formularios);
+    } catch (error) {
+      console.error('Erro ao listar formulários:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao listar formulários',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /formularios/{id}:
+   * /formulario/{id}:
    *   get:
    *     summary: Busca um formulário por ID
    *     tags: [Formulario]
@@ -61,91 +59,116 @@ export class FormularioController {
    *       200:
    *         description: Dados do formulário
    */
-  async getById(req: Request, res: Response) {
-    const formulario = await this.formularioService.getFormularioById(Number(req.params.id));
-    return res.json(formulario);
+  async findById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      console.log('Tentando buscar formulário com ID:', id);
+      const formulario = await prisma.formulario.findUnique({
+        where: { id: Number(id) }
+      });
+      
+      if (!formulario) {
+        return res.status(404).json({ error: 'Formulário não encontrado' });
+      }
+      
+      console.log('Formulário encontrado:', formulario);
+      return res.json(formulario);
+    } catch (error) {
+      console.error('Erro detalhado ao buscar formulário:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao buscar formulário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /formularios:
-   *   get:
-   *     summary: Busca um formulário pelo adotanteUserId
+   * /formulario/test:
+   *   post:
+   *     summary: Cria um formulário de teste
    *     tags: [Formulario]
-   *     parameters:
-   *       - in: query
-   *         name: adotanteUserId
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do adotanteUser
    *     responses:
    *       200:
-   *         description: Dados do formulário
+   *         description: Formulário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Formulario'
    */
-  async getByAdotanteUserId(req: Request, res: Response) {
-    const formulario = await this.formularioService.getFormularioByAdotanteUserId(Number(req.query.adotanteUserId));
-    return res.json(formulario);
+  async createTest(req: Request, res: Response) {
+    try {
+      console.log('Tentando criar formulário de teste...');
+      const formulario = await prisma.formulario.create({
+        data: {
+          idAdotante: 1,
+          nomeAdotante: 'Usuário Teste',
+          ongResponsavel: 'ONG Teste'
+        }
+      });
+      console.log('Formulário criado com sucesso:', formulario);
+      return res.json(formulario);
+    } catch (error) {
+      console.error('Erro detalhado ao criar formulário de teste:', error);
+      if (error instanceof Error) {
+        console.error('Mensagem de erro:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      return res.status(500).json({ 
+        error: 'Erro ao criar formulário de teste',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 
   /**
    * @swagger
-   * /formularios/{id}:
-   *   put:
-   *     summary: Atualiza um formulário
+   * /formulario:
+   *   post:
+   *     summary: Cria um novo formulário
    *     tags: [Formulario]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do formulário
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
-   *             type: object
-   *             properties:
-   *               mediaSalarial:
-   *                 type: string
-   *               temQuintal:
-   *                 type: boolean
-   *               possuiOutrosAnimais:
-   *                 type: boolean
-   *               animais:
-   *                 type: string
-   *               imovel:
-   *                 type: string
+   *             $ref: '#/components/schemas/Formulario'
    *     responses:
-   *       200:
-   *         description: Formulário atualizado
+   *       201:
+   *         description: Formulário criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Formulario'
    */
-  async update(req: Request, res: Response) {
-    const formulario = await this.formularioService.updateFormulario(Number(req.params.id), req.body);
-    return res.json(formulario);
-  }
+  async create(req: Request, res: Response) {
+    try {
+      const { idAdotante, nomeAdotante, ongResponsavel } = req.body;
 
-  /**
-   * @swagger
-   * /formularios/{id}:
-   *   delete:
-   *     summary: Remove um formulário
-   *     tags: [Formulario]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         schema:
-   *           type: integer
-   *         required: true
-   *         description: ID do formulário
-   *     responses:
-   *       204:
-   *         description: Formulário removido com sucesso
-   */
-  async delete(req: Request, res: Response) {
-    await this.formularioService.deleteFormulario(Number(req.params.id));
-    return res.status(204).send();
+      if (!idAdotante || !nomeAdotante || !ongResponsavel) {
+        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      }
+
+      const formulario = await prisma.formulario.create({
+        data: {
+          idAdotante: Number(idAdotante),
+          nomeAdotante,
+          ongResponsavel,
+          dataEnvio: new Date()
+        }
+      });
+
+      return res.status(201).json(formulario);
+    } catch (error) {
+      console.error('Erro ao criar formulário:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao criar formulário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
   }
 } 

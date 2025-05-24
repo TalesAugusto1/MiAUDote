@@ -1,25 +1,31 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Autenticação de usuários
+ */
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { PrismaUserRepository } from '../repositories/PrismaUserRepository';
 import { AuthService } from '../services/AuthService';
 
 const registerSchema = z.object({
-  name: z.string().min(3),
+  nome: z.string().min(3),
   email: z.string().email(),
   confirmEmail: z.string().email(),
-  password: z.string().min(6),
-  confirmPassword: z.string().min(6),
-  profilePicture: z.string().optional(),
+  senha: z.string().min(6),
+  confirmSenha: z.string().min(6),
 }).refine((data) => data.email === data.confirmEmail, {
   message: "Os e-mails não coincidem",
   path: ["confirmEmail"],
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => data.senha === data.confirmSenha, {
   message: "As senhas não coincidem",
-  path: ["confirmPassword"],
+  path: ["confirmSenha"],
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  senha: z.string(),
 });
 
 /**
@@ -31,11 +37,9 @@ const loginSchema = z.object({
  *       properties:
  *         id:
  *           type: integer
- *         name:
+ *         nome:
  *           type: string
  *         email:
- *           type: string
- *         profilePicture:
  *           type: string
  *     AuthResponse:
  *       type: object
@@ -47,7 +51,12 @@ const loginSchema = z.object({
  */
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  private authService: AuthService;
+
+  constructor() {
+    const userRepository = new PrismaUserRepository();
+    this.authService = new AuthService(userRepository);
+  }
 
   /**
    * @swagger
@@ -62,23 +71,21 @@ export class AuthController {
    *           schema:
    *             type: object
    *             required:
-   *               - name
+   *               - nome
    *               - email
    *               - confirmEmail
-   *               - password
-   *               - confirmPassword
+   *               - senha
+   *               - confirmSenha
    *             properties:
-   *               name:
+   *               nome:
    *                 type: string
    *               email:
    *                 type: string
    *               confirmEmail:
    *                 type: string
-   *               password:
+   *               senha:
    *                 type: string
-   *               confirmPassword:
-   *                 type: string
-   *               profilePicture:
+   *               confirmSenha:
    *                 type: string
    *     responses:
    *       201:
@@ -94,10 +101,9 @@ export class AuthController {
     try {
       const data = registerSchema.parse(req.body);
       const result = await this.authService.register({
-        name: data.name,
+        name: data.nome,
         email: data.email,
-        password: data.password,
-        profilePicture: data.profilePicture,
+        password: data.senha,
       });
       return res.status(201).json(result);
     } catch (error) {
@@ -122,11 +128,11 @@ export class AuthController {
    *             type: object
    *             required:
    *               - email
-   *               - password
+   *               - senha
    *             properties:
    *               email:
    *                 type: string
-   *               password:
+   *               senha:
    *                 type: string
    *     responses:
    *       200:
@@ -148,6 +154,31 @@ export class AuthController {
         return res.status(400).json({ error: error.errors });
       }
       return res.status(401).json({ error: (error as Error).message });
+    }
+  }
+
+  /**
+   * @swagger
+   * /auth/verify:
+   *   post:
+   *     summary: Verifica o token de autenticação
+   *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Token válido
+   */
+  async verifyToken(req: Request, res: Response) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        return res.status(401).json({ error: 'Token não fornecido' });
+      }
+      const user = await this.authService.verifyToken(token);
+      return res.json(user);
+    } catch (error) {
+      return res.status(401).json({ error: 'Token inválido' });
     }
   }
 } 

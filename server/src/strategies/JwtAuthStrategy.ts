@@ -11,14 +11,13 @@ export class JwtAuthStrategy implements IAuthStrategy {
 
   async authenticate(credentials: {
     email: string;
-    password: string;
+    senha: string;
   }): Promise<{
     token: string;
     user: {
       id: number;
-      name: string;
+      nome: string;
       email: string;
-      profilePicture?: string;
     };
   }> {
     const user = await this.userRepository.findByEmail(credentials.email);
@@ -27,7 +26,7 @@ export class JwtAuthStrategy implements IAuthStrategy {
       throw new Error('Usuário não encontrado');
     }
 
-    const passwordMatch = await compare(credentials.password, user.password);
+    const passwordMatch = await compare(credentials.senha, user.senha);
 
     if (!passwordMatch) {
       throw new Error('Senha incorreta');
@@ -48,9 +47,8 @@ export class JwtAuthStrategy implements IAuthStrategy {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        nome: user.nome,
         email: user.email,
-        profilePicture: user.profilePicture || undefined,
       },
     };
   }
