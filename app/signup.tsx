@@ -3,7 +3,7 @@ import { Picker } from "@react-native-picker/picker";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -15,11 +15,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { useUser } from "../context/UserContext";
+import { useModal } from "../contexts/ModalContext";
+
 import { AdotanteRegistrationStrategy, OngRegistrationStrategy, UserService } from "./services/UserService";
 
 type UserType = "ADOTANTE" | "ONG";
 
+
 export default function SignupScreen() {
+  const { register, isLoading } = useUser();
+  const { showError, showSuccess } = useModal();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
@@ -46,22 +54,29 @@ export default function SignupScreen() {
 
   const validateForm = () => {
     if (!name.trim()) {
-      Alert.alert("Erro", "Por favor, digite seu nome completo");
+      showError("Erro", "Por favor, digite seu nome completo");
       return false;
     }
 
     if (!email.trim() || !email.includes("@")) {
-      Alert.alert("Erro", "Por favor, digite um e-mail válido");
+      showError("Erro", "Por favor, digite um e-mail válido");
       return false;
     }
 
+
+    // Check for CPF with formatting (should be XXX.XXX.XXX-XX)
+    const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+    if (!cpf.trim() || !cpfRegex.test(cpf)) {
+      showError("Erro", "Por favor, digite um CPF válido");
+
     if (email !== confirmEmail) {
       Alert.alert("Erro", "Os e-mails não coincidem");
+
       return false;
     }
 
     if (!password.trim() || password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres");
+      showError("Erro", "A senha deve ter pelo menos 6 caracteres");
       return false;
     }
 
@@ -100,6 +115,18 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     if (validateForm()) {
       try {
+
+        const response = await register(name, email, cpf, password);
+
+        if (!response.success) {
+          showError("Erro", response.message);
+        } else {
+          showSuccess("Sucesso", "Cadastro realizado com sucesso!", goToLogin);
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        showError("Erro", "Ocorreu um erro ao registrar. Tente novamente.");
+
         setIsLoading(true);
 
         const userData = {
@@ -134,12 +161,13 @@ export default function SignupScreen() {
         Alert.alert("Erro", error.message || "Erro ao realizar cadastro");
       } finally {
         setIsLoading(false);
+
       }
     }
   };
 
   const goToLogin = () => {
-    router.replace("/login");
+    router.push("/login");
   };
 
   // Format CPF as user types (XXX.XXX.XXX-XX)
@@ -399,6 +427,31 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </View>
 
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.signupButton}
+            onPress={handleSignup}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Text style={styles.signupButtonText}>Finalizar cadastro</Text>
+                <Ionicons
+                  name="paw"
+                  size={20}
+                  color="white"
+                  style={styles.pawIcon}
+                />
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+
           <TouchableOpacity style={styles.loginLink} onPress={goToLogin}>
             <Text style={styles.loginLinkText}>Já possui conta? Faça login</Text>
           </TouchableOpacity>
@@ -475,7 +528,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
-    marginTop: 15,
+    marginTop: 20,
   },
   signupButton: {
     backgroundColor: "#4CC9F0",
@@ -504,11 +557,13 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     alignItems: "center",
+
     marginTop: 15,
     marginBottom: 30,
+
   },
   loginLinkText: {
+    fontSize: 15,
     color: "#4CC9F0",
-    fontSize: 14,
   },
 });

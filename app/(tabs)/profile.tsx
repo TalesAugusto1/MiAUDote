@@ -1,15 +1,65 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../../context/UserContext";
+import { useModal } from "../../contexts/ModalContext";
 
 export default function ProfileScreen() {
-  const handleLogout = () => {
+  const { user, logout, isLoading } = useUser();
+  const { showConfirm, showInfo } = useModal();
 
-    router.replace("/login");
+  const handleLogout = async () => {
+    showConfirm(
+      "Sair",
+      "Tem certeza que deseja sair?",
+      async () => {
+        await logout();
+      },
+      {
+        confirmText: "Sair",
+        cancelText: "Cancelar",
+      }
+    );
   };
+
+  const handleEditProfile = () => {
+    router.push("/(tabs)/edit-profile");
+  };
+
+  const handleSettings = () => {
+    showInfo(
+      "Configurações",
+      "Esta funcionalidade será implementada em breve!"
+    );
+  };
+
+  const handleFavorites = () => {
+    showInfo("Favoritos", "Esta funcionalidade será implementada em breve!");
+  };
+
+  const handleHelp = () => {
+    showInfo("Ajuda", "Esta funcionalidade será implementada em breve!");
+  };
+
+  if (isLoading || !user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CC9F0" />
+          <Text style={styles.loadingText}>Carregando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <>
@@ -27,37 +77,57 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.profileContainer}>
-          <View style={styles.profileImageContainer}>
+          <TouchableOpacity
+            onPress={handleEditProfile}
+            style={styles.profileImageContainer}
+          >
             <Ionicons name="person-circle" size={100} color="#4CC9F0" />
-          </View>
-          <Text style={styles.userName}>Usuário MiAUDote</Text>
-          <Text style={styles.userEmail}>usuario@email.com</Text>
+            <View style={styles.editIconContainer}>
+              <Ionicons name="pencil" size={14} color="white" />
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+
+          {user.bio ? <Text style={styles.userBio}>{user.bio}</Text> : null}
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>0</Text>
+              <Text style={styles.statNumber}>{user.adoptions}</Text>
               <Text style={styles.statLabel}>Adoções</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>0</Text>
+              <Text style={styles.statNumber}>
+                {user.favorites?.length || 0}
+              </Text>
               <Text style={styles.statLabel}>Favoritos</Text>
             </View>
           </View>
 
           <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleEditProfile}
+            >
+              <Ionicons name="person-outline" size={24} color="#555" />
+              <Text style={styles.menuItemText}>Editar Perfil</Text>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleSettings}>
               <Ionicons name="settings-outline" size={24} color="#555" />
               <Text style={styles.menuItemText}>Configurações</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleFavorites}>
               <Ionicons name="heart-outline" size={24} color="#555" />
               <Text style={styles.menuItemText}>Favoritos</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleHelp}>
               <Ionicons name="help-circle-outline" size={24} color="#555" />
               <Text style={styles.menuItemText}>Ajuda</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
@@ -110,9 +180,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 90,
   },
   profileImageContainer: {
     marginBottom: 15,
+    position: "relative",
+  },
+  editIconContainer: {
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    backgroundColor: "#4CC9F0",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
   },
   userName: {
     fontSize: 22,
@@ -122,12 +207,21 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 16,
     color: "#777",
-    marginBottom: 25,
+    marginBottom: 10,
+  },
+  userBio: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    marginHorizontal: 20,
+    marginBottom: 20,
+    fontStyle: "italic",
   },
   statsContainer: {
     flexDirection: "row",
     width: "80%",
     justifyContent: "space-around",
+    marginTop: 15,
     marginBottom: 30,
   },
   statItem: {
@@ -177,5 +271,15 @@ const styles = StyleSheet.create({
   },
   logoutIcon: {
     marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#777",
   },
 });

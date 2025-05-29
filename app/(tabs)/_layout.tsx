@@ -34,6 +34,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
+        animation: "fade",
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
@@ -91,6 +92,20 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <CustomTabBarIcon name="person" color={color} focused={focused} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="animal-details"
+        options={{
+          title: "Detalhes",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
+          title: "Editar Perfil",
+          href: null,
         }}
       />
     </Tabs>

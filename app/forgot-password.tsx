@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -13,33 +14,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useUser } from "../context/UserContext";
+import React from "react";
 
 export default function ForgotPasswordScreen() {
+  const { resetPassword, isLoading } = useUser();
   const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
 
-  const validateEmail = () => {
+  const handleResetPassword = async () => {
     if (!email.trim() || !email.includes("@")) {
       Alert.alert("Erro", "Por favor, digite um e-mail válido");
-      return false;
+      return;
     }
-    return true;
-  };
 
-  const handleSendEmail = () => {
-    if (validateEmail()) {
-      setEmailSent(true);
+    const response = await resetPassword(email);
 
+    if (response.success) {
       Alert.alert(
         "E-mail enviado",
-        "Enviamos instruções para redefinir sua senha para " + email,
-        [{ text: "OK" }]
+        "Enviamos instruções para recuperar sua senha para o e-mail informado.",
+        [{ text: "OK", onPress: () => router.replace("/login") }]
       );
+    } else {
+      Alert.alert("Erro", response.message);
     }
   };
 
-  const goToLogin = () => {
-    router.replace("/login");
+  const handleGoBack = () => {
+    router.back();
   };
 
   return (
@@ -49,56 +51,74 @@ export default function ForgotPasswordScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
       >
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Esqueceu a senha?</Text>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../assets/images/logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <Ionicons name="arrow-back" size={24} color="#4CC9F0" />
+          </TouchableOpacity>
         </View>
+
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        <Text style={styles.title}>Recuperar Senha</Text>
+        <Text style={styles.subtitle}>
+          Digite seu e-mail e enviaremos instruções para recuperar sua senha.
+        </Text>
 
         <View style={styles.formContainer}>
           <View style={styles.inputWrapper}>
             <Ionicons
-              name="mail"
+              name="mail-outline"
               size={20}
               color="#777"
               style={styles.inputIcon}
             />
             <TextInput
               style={styles.input}
-              placeholder="Digite seu e-mail aqui"
+              placeholder="Digite seu e-mail"
               placeholderTextColor="#777"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              autoComplete="email"
             />
           </View>
-
-          <Text style={styles.infoText}>
-            *Você receberá uma mensagem para acessar sua senha.
-          </Text>
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.sendButton} onPress={handleSendEmail}>
-            <Text style={styles.sendButtonText}>Enviar</Text>
-            <Ionicons
-              name="paw"
-              size={20}
-              color="white"
-              style={styles.pawIcon}
-            />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={handleResetPassword}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Text style={styles.sendButtonText}>Enviar</Text>
+                <Ionicons
+                  name="send-outline"
+                  size={20}
+                  color="white"
+                  style={styles.buttonIcon}
+                />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.backToLoginButton}
+            onPress={handleGoBack}
+          >
+            <Text style={styles.backToLoginText}>Voltar para Login</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.loginLink} onPress={goToLogin}>
-          <Text style={styles.loginLinkText}>Voltar para login</Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -111,30 +131,43 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     justifyContent: "center",
   },
-  headerContainer: {
-    alignItems: "center",
-    marginBottom: 30,
+  header: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    zIndex: 10,
   },
-  headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
+  backButton: {
+    padding: 8,
   },
   logoContainer: {
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: 30,
   },
   logo: {
     width: 120,
     height: 80,
   },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 30,
+    paddingHorizontal: 15,
+  },
   formContainer: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 25,
   },
   inputWrapper: {
     flexDirection: "row",
@@ -142,7 +175,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 15,
     paddingHorizontal: 15,
     height: 50,
     backgroundColor: "white",
@@ -156,15 +189,8 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 16,
   },
-  infoText: {
-    fontSize: 12,
-    color: "#777",
-    marginTop: 4,
-    fontStyle: "italic",
-  },
   buttonContainer: {
     width: "100%",
-    marginTop: 10,
   },
   sendButton: {
     backgroundColor: "#4CC9F0",
@@ -185,15 +211,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  pawIcon: {
+  buttonIcon: {
     marginLeft: 8,
   },
-  loginLink: {
+  backToLoginButton: {
     alignItems: "center",
-    marginTop: 15,
   },
-  loginLinkText: {
+  backToLoginText: {
+    fontSize: 15,
     color: "#4CC9F0",
-    fontSize: 14,
   },
 });

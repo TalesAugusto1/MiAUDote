@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   formContent: {
     padding: 25,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   formHeaderContainer: {
     marginTop: 15,
