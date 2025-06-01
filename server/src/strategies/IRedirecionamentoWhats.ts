@@ -1,5 +1,8 @@
-import { OngUser } from '@prisma/client';
+// Interface para estratégias de redirecionamento para WhatsApp
+// Temporariamente desativada - não será utilizada no momento
 
-export interface IRedirecionamentoWhats {
-  redirecionar(ong: OngUser): void;
-} 
+// import { Ong } from '@prisma/client';
+
+// export interface IRedirecionamentoWhats {
+//   redirecionar(ong: Ong): void;
+// } 

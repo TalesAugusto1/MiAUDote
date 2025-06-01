@@ -54,7 +54,14 @@ app.use(cors());
 app.use(express.json());
 
 // Configuração do Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+const swaggerOptions = {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "MiAuDote API Documentation"
+};
+
+// @ts-ignore - Ignorando erro de tipagem do Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
 // Rotas de usuário
 app.post('/user', userController.create.bind(userController));

@@ -8,12 +8,24 @@ const options = {
       title: 'API MiAuDote',
       version: '1.0.0',
       description: 'API para o sistema de adoção de animais MiAuDote',
+      contact: {
+        name: 'Suporte MiAuDote',
+        email: 'suporte@miaudote.com'
+      },
+      license: {
+        name: 'MIT',
+        url: 'https://opensource.org/licenses/MIT'
+      }
     },
     servers: [
       {
         url: 'http://localhost:3333',
         description: 'Servidor de desenvolvimento',
       },
+      {
+        url: 'https://api.miaudote.com',
+        description: 'Servidor de produção',
+      }
     ],
     components: {
       securitySchemes: {
@@ -21,9 +33,34 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
+          description: 'JWT token de autenticação'
         },
       },
       schemas: {
+        UserBasic: {
+          type: 'object',
+          properties: {
+            id: { 
+              type: 'integer',
+              description: 'ID do usuário (gerado automaticamente)'
+            },
+            nome: { 
+              type: 'string',
+              description: 'Nome do usuário'
+            },
+            email: { 
+              type: 'string',
+              description: 'Email do usuário (único)',
+              format: 'email'
+            },
+            senha: { 
+              type: 'string',
+              description: 'Senha do usuário',
+              format: 'password'
+            }
+          },
+          required: ['nome', 'email', 'senha']
+        },
         User: {
           type: 'object',
           properties: {
@@ -37,11 +74,13 @@ const options = {
             },
             email: { 
               type: 'string',
-              description: 'Email do usuário (único)'
+              description: 'Email do usuário (único)',
+              format: 'email'
             },
             senha: { 
               type: 'string',
-              description: 'Senha do usuário'
+              description: 'Senha do usuário',
+              format: 'password'
             },
             adotante: { 
               type: 'object',
@@ -61,7 +100,8 @@ const options = {
                 endereco: { type: 'string' }
               }
             }
-          }
+          },
+          required: ['nome', 'email', 'senha']
         },
         Adotante: {
           type: 'object',
@@ -69,7 +109,7 @@ const options = {
             id: { type: 'integer' },
             cpf: { type: 'string' },
             dataNascimento: { type: 'string', format: 'date-time' },
-            user: { $ref: '#/components/schemas/User' }
+            user: { $ref: '#/components/schemas/UserBasic' }
           }
         },
         Ong: {
@@ -78,7 +118,7 @@ const options = {
             id: { type: 'integer' },
             cnpj: { type: 'string' },
             endereco: { type: 'string' },
-            user: { $ref: '#/components/schemas/User' }
+            user: { $ref: '#/components/schemas/UserBasic' }
           }
         },
         Animal: {
@@ -351,13 +391,43 @@ const options = {
             }
           }
         }
-      }
+      },
+      tags: [
+        {
+          name: 'Auth',
+          description: 'Operações de autenticação'
+        },
+        {
+          name: 'User',
+          description: 'Operações de usuário'
+        },
+        {
+          name: 'Adotante',
+          description: 'Operações de adotante'
+        },
+        {
+          name: 'Ong',
+          description: 'Operações de ONG'
+        },
+        {
+          name: 'Animal',
+          description: 'Operações de animal'
+        },
+        {
+          name: 'Adocao',
+          description: 'Operações de adoção'
+        },
+        {
+          name: 'Formulario',
+          description: 'Operações de formulário'
+        }
+      ]
     }
   },
   apis: [
     path.join(__dirname, '../controllers/*.ts'),
-    path.join(__dirname, '../controllers/**/*.ts')
-  ],
+    path.join(__dirname, '../routes/*.ts')
+  ]
 };
 
 export const specs = swaggerJsdoc(options);
