@@ -15,7 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AdotanteRegistrationStrategy, OngRegistrationStrategy, UserService } from "./services/UserService";
 
 type UserType = "ADOTANTE" | "ONG";
 
@@ -37,12 +36,6 @@ export default function SignupScreen() {
   const [cnpj, setCnpj] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-
-  const userService = new UserService(
-    userType === "ADOTANTE" 
-      ? new AdotanteRegistrationStrategy() 
-      : new OngRegistrationStrategy()
-  );
 
   const validateForm = () => {
     if (!name.trim()) {
@@ -97,45 +90,40 @@ export default function SignupScreen() {
     return true;
   };
 
-  const handleSignup = async () => {
-    if (validateForm()) {
-      try {
-        setIsLoading(true);
+  const handleSignup = () => {
+      const userData = {
+        name,
+        email,
+        password,
+        userType,
+        profilePicture: undefined,
+      };
 
-        const userData = {
-          name,
-          email,
-          password,
-          profilePicture: undefined,
-        };
+      router.push({
+        pathname: "/chat-form",
+        params: userData
+      });
 
-        if (userType === "ADOTANTE") {
-          const adotanteData = {
-            cpf: cpf.replace(/\D/g, ''),
-            formRespondido: false,
-          };
-          await userService.registerUser(userData, adotanteData);
-        } else {
-          const ongData = {
-            cnpj: cnpj.replace(/\D/g, ''),
-            whatsapp: phone,
-            endereco: address,
-          };
-          await userService.registerUser(userData, ongData);
-        }
 
-        Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(tabs)"),
-          },
-        ]);
-      } catch (error: any) {
-        Alert.alert("Erro", error.message || "Erro ao realizar cadastro");
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    // if (validateForm()) {
+    //   setIsLoading(true);
+
+    //   const userData = {
+    //     name,
+    //     email,
+    //     password,
+    //     userType,
+    //     profilePicture: undefined,
+    //   };
+
+    //   // Redireciona para a tela de chat com os dados já preenchidos
+    //   router.push({
+    //     pathname: "/chat-form",
+    //     params: userData
+    //   });
+
+    //   setIsLoading(false);
+    // }
   };
 
   const goToLogin = () => {
@@ -213,7 +201,7 @@ export default function SignupScreen() {
       <KeyboardAvoidingView
         style={styles.innerContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.headerContainer}>

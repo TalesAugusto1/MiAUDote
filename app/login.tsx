@@ -24,7 +24,7 @@ export default function LoginScreen() {
 
   const handleRegister = () => {
     
-    router.push("/signup");
+    router.push("/cadastro");
   };
 
   const handleForgotPassword = () => {
