@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -125,74 +125,88 @@ export default function ChatForm() {
   };
 
   return (
-    <SafeAreaViewRN style={styles.container} edges={['bottom']}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={keyboardOffset}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.messagesContainer}
-          contentContainerStyle={styles.messagesContent}
-          keyboardShouldPersistTaps="handled"
-          onContentSizeChange={() =>
-            scrollViewRef.current?.scrollToEnd({ animated: true })
-          }
+    <>
+      <Stack.Screen 
+        options={{
+          title: "Formulário de adoção",
+          headerStyle: {
+            backgroundColor: '#4CC9F0',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }} 
+      />
+      <SafeAreaViewRN style={styles.container} edges={['bottom']}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={keyboardOffset}
         >
-          {messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageBubble,
-                message.isUser ? styles.userMessage : styles.botMessage,
-              ]}
-            >
-              <Text style={styles.messageText}>{message.text}</Text>
-            </View>
-          ))}
-          {isTyping && (
-            <View style={[styles.messageBubble, styles.botMessage]}>
-              <Text style={styles.messageText}>Digitando...</Text>
-            </View>
-          )}
-        </ScrollView>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={userInput}
-            onChangeText={setUserInput}
-            placeholder="Digite sua resposta..."
-            placeholderTextColor="#999"
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={handleSend}
-            disabled={!userInput.trim()}
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.messagesContainer}
+            contentContainerStyle={styles.messagesContent}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
           >
-            <Ionicons
-              name="send"
-              size={24}
-              color={userInput.trim() ? '#4CC9F0' : '#ccc'}
-            />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaViewRN>
+            {messages.map((message) => (
+              <View
+                key={message.id}
+                style={[
+                  styles.messageBubble,
+                  message.isUser ? styles.userMessage : styles.botMessage,
+                ]}
+              >
+                <Text style={styles.messageText}>{message.text}</Text>
+              </View>
+            ))}
+            {isTyping && (
+              <View style={[styles.messageBubble, styles.botMessage]}>
+                <Text style={styles.messageText}>Digitando...</Text>
+              </View>
+            )}
+          </ScrollView>
 
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={userInput}
+              onChangeText={setUserInput}
+              placeholder="Digite sua resposta..."
+              placeholderTextColor="#999"
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={handleSend}
+              disabled={!userInput.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={24}
+                color={userInput.trim() ? '#4CC9F0' : '#ccc'}
+              />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaViewRN>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5EB',
+    backgroundColor: '#000000',
   },
   keyboardView: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: '#FFF5EB',
   },
   messagesContainer: {
     flex: 1,
