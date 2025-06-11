@@ -1,6 +1,7 @@
 import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
+const isDev = process.env.NODE_ENV !== 'production';
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -11,8 +12,8 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3333',
-        description: 'Servidor de desenvolvimento',
+        url: process.env.SERVER_URL || 'http://localhost:3333',
+        description: 'Servidor da API',
       },
     ],
     components: {
@@ -354,10 +355,15 @@ const options = {
       }
     }
   },
-  apis: [
-    path.join(__dirname, '../controllers/*.ts'),
-    path.join(__dirname, '../controllers/**/*.ts')
-  ],
+  apis: isDev
+    ? [
+        path.join(__dirname, '../src/controllers/*.ts'),
+        path.join(__dirname, '../src/controllers/**/*.ts')
+      ]
+    : [
+        path.join(__dirname, '../dist/controllers/*.js'),
+        path.join(__dirname, '../dist/controllers/**/*.js')
+      ],
 };
 
 export const specs = swaggerJsdoc(options);
