@@ -49,8 +49,7 @@ const options = {
               description: 'Dados do adotante',
               properties: {
                 id: { type: 'integer' },
-                cpf: { type: 'string' },
-                dataNascimento: { type: 'string', format: 'date-time' }
+                cpf: { type: 'string' }
               }
             },
             ong: { 
@@ -69,7 +68,6 @@ const options = {
           properties: {
             id: { type: 'integer' },
             cpf: { type: 'string' },
-            dataNascimento: { type: 'string', format: 'date-time' },
             user: { $ref: '#/components/schemas/User' }
           }
         },
