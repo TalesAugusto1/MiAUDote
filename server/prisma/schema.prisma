@@ -19,9 +19,8 @@ model User {
 }
 
 model Adotante {
-  id             Int      @id
-  cpf            String
-  dataNascimento DateTime
+  id    Int    @id
+  cpf   String
 
   user       User        @relation("UserAdotante", fields: [id], references: [id])
   adocoes    Adocao[]    @relation("AdotanteAdocoes")

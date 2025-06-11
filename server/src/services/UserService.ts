@@ -36,14 +36,12 @@ export class UserService {
     email: string;
     senha: string;
     cpf: string;
-    dataNascimento: Date;
   }): Promise<{ user: User; adotante: any }> {
-    const { nome, email, senha, cpf, dataNascimento } = data;
+    const { nome, email, senha, cpf } = data;
     const user = await this.userRepository.create({ nome, email, senha });
     const adotante = await this.userRepository.createAdotante({
       id: user.id,
-      cpf,
-      dataNascimento
+      cpf
     });
     return { user, adotante };
   }

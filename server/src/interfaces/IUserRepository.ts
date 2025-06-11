@@ -9,6 +9,6 @@ export interface IUserRepository {
   update(id: number, data: Partial<User>): Promise<User>;
   delete(id: number): Promise<void>;
   findAll(): Promise<User[]>;
-  createAdotante(data: { id: number; cpf: string; dataNascimento: Date }): Promise<any>;
+  createAdotante(data: { id: number; cpf: string }): Promise<any>;
   createOng(data: { id: number; cnpj: string; endereco: string }): Promise<any>;
 }

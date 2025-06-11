@@ -38,12 +38,11 @@ export class PrismaUserRepository implements IUserRepository {
     return this.prisma.user.findMany();
   }
 
-  async createAdotante(data: { id: number; cpf: string; dataNascimento: Date }): Promise<any> {
+  async createAdotante(data: { id: number; cpf: string }): Promise<any> {
     return this.prisma.adotante.create({
       data: {
         id: data.id,
-        cpf: data.cpf,
-        dataNascimento: data.dataNascimento
+        cpf: data.cpf
       }
     });
   }
