@@ -4,6 +4,7 @@
  *   name: Auth
  *   description: Autenticação de usuários
  */
+import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { PrismaUserRepository } from '../repositories/PrismaUserRepository';
@@ -54,7 +55,8 @@ export class AuthController {
   private authService: AuthService;
 
   constructor() {
-    const userRepository = new PrismaUserRepository();
+    const prisma = new PrismaClient();
+    const userRepository = new PrismaUserRepository(prisma);
     this.authService = new AuthService(userRepository);
   }
 
@@ -147,7 +149,7 @@ export class AuthController {
   async login(req: Request, res: Response) {
     try {
       const credentials = loginSchema.parse(req.body);
-      const result = await this.authService.login(credentials);
+      const result = await this.authService.login(credentials.email, credentials.senha);
       return res.json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {

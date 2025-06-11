@@ -1,5 +1,5 @@
-import { OngUser } from '@prisma/client';
+import { Ong } from '@prisma/client';
 
 export interface IRedirecionamentoWhats {
-  redirecionar(ong: OngUser): void;
+  redirecionar(ong: Ong): void;
 } 
