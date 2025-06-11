@@ -357,12 +357,12 @@ const options = {
   },
   apis: isDev
     ? [
-        path.join(__dirname, '../src/controllers/*.ts'),
-        path.join(__dirname, '../src/controllers/**/*.ts')
+        path.join(__dirname, '../controllers/*.ts'),
+        path.join(__dirname, '../controllers/**/*.ts')
       ]
     : [
-        path.join(__dirname, '../dist/controllers/*.js'),
-        path.join(__dirname, '../dist/controllers/**/*.js')
+        path.join(__dirname, '../controllers/*.js'),
+        path.join(__dirname, '../controllers/**/*.js')
       ],
 };
 
