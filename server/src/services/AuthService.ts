@@ -1,9 +1,7 @@
-import { Prisma } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { IUserRepository } from '../interfaces/IUserRepository';
-
-type User = Prisma.UserGetPayload<{}>;
 
 const SECRET_KEY = process.env.JWT_SECRET || 'miAuDoteSecret';
 
@@ -14,15 +12,15 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
     if (!user) return null;
 
-    const isValid = await bcrypt.compare(password, user.senha);
+    const isValid = await bcryptjs.compare(password, user.senha);
     if (!isValid) return null;
 
     return user;
   }
 
   async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
+    const salt = await bcryptjs.genSalt(10);
+    return bcryptjs.hash(password, salt);
   }
 
   async register(data: { name: string; email: string; password: string }) {

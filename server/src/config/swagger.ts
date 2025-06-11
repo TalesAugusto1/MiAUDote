@@ -184,13 +184,12 @@ const options = {
                 'application/json': {
                   schema: {
                     type: 'object',
-                    required: ['nome', 'email', 'senha', 'cpf', 'dataNascimento'],
+                    required: ['nome', 'email', 'senha', 'cpf'],
                     properties: {
                       nome: { type: 'string' },
                       email: { type: 'string' },
                       senha: { type: 'string' },
-                      cpf: { type: 'string' },
-                      dataNascimento: { type: 'string', format: 'date-time' }
+                      cpf: { type: 'string' }
                     }
                   }
                 }

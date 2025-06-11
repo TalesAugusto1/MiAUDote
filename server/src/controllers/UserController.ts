@@ -102,7 +102,6 @@ export class UserController {
    *               - email
    *               - senha
    *               - cpf
-   *               - dataNascimento
    *             properties:
    *               nome:
    *                 type: string
@@ -112,18 +111,15 @@ export class UserController {
    *                 type: string
    *               cpf:
    *                 type: string
-   *               dataNascimento:
-   *                 type: string
-   *                 format: date-time
    *     responses:
    *       201:
    *         description: Usuário e adotante criados com sucesso
    */
   async createWithAdotante(req: Request, res: Response) {
     try {
-      const { nome, email, senha, cpf, dataNascimento } = req.body;
+      const { nome, email, senha, cpf } = req.body;
 
-      if (!nome || !email || !senha || !cpf || !dataNascimento) {
+      if (!nome || !email || !senha || !cpf) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
       }
 
@@ -131,8 +127,7 @@ export class UserController {
         nome,
         email,
         senha,
-        cpf,
-        dataNascimento: new Date(dataNascimento)
+        cpf
       });
 
       return res.status(201).json(result);
