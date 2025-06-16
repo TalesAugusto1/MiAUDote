@@ -114,7 +114,19 @@ export default function SignupScreen() {
             cpf: cpf.replace(/\D/g, ''),
             formRespondido: false,
           };
-          await userService.registerUser(userData, adotanteData);
+          
+          const response = await userService.registerUser(userData, adotanteData);
+          
+          if (response.success) {
+            Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
+              {
+                text: "OK",
+                onPress: () => router.replace("/(tabs)"),
+              },
+            ]);
+          } else {
+            throw new Error(response.message || "Erro ao realizar cadastro");
+          }
         } else {
           const ongData = {
             cnpj: cnpj.replace(/\D/g, ''),
@@ -123,13 +135,6 @@ export default function SignupScreen() {
           };
           await userService.registerUser(userData, ongData);
         }
-
-        Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(tabs)"),
-          },
-        ]);
       } catch (error: any) {
         Alert.alert("Erro", error.message || "Erro ao realizar cadastro");
       } finally {

@@ -30,19 +30,52 @@ export interface IUserRegistrationStrategy {
 export class AdotanteRegistrationStrategy implements IUserRegistrationStrategy {
   async register(userData: IUserData, adotanteData: IAdotanteData) {
     try {
-      // Primeiro, registra o usuário base
-      const registerResponse = await api.post('/auth/register', userData);
-      const userId = registerResponse.data.user.id;
-      
-      // Depois, registra como adotante
-      await api.post('/adotantes', {
-        ...adotanteData,
-        userId,
-      });
+      // Prepara os dados para o cadastro no formato que a API espera
+      const registerData = {
+        nome: userData.name,
+        email: userData.email,
+        senha: userData.password,
+        cpf: adotanteData.cpf,
+        formRespondido: adotanteData.formRespondido,
+        tipo: 'ADOTANTE'  // Adicionando o tipo de usuário
+      };
 
-      return registerResponse.data;
+      console.log('Dados sendo enviados:', registerData);
+
+      // Realiza o cadastro
+      const registerResponse = await api.post('/user/adotante', registerData);
+
+      if (!registerResponse.data) {
+        throw new Error('Erro ao processar resposta do servidor');
+      }
+
+      return {
+        success: true,
+        data: registerResponse.data
+      };
     } catch (error: any) {
-      throw new Error(error.message || 'Erro ao registrar adotante');
+      console.error('Erro no registro:', error);
+      
+      // Verifica se o erro é de email duplicado
+      if (error.response?.status === 409 || error.message?.includes('email já cadastrado')) {
+        return {
+          success: false,
+          message: 'Este email já está cadastrado'
+        };
+      }
+
+      // Verifica se é erro de campos obrigatórios
+      if (error.response?.status === 400) {
+        return {
+          success: false,
+          message: error.response.data.error || 'Todos os campos são obrigatórios'
+        };
+      }
+
+      return {
+        success: false,
+        message: error.message || 'Erro ao registrar adotante'
+      };
     }
   }
 }
