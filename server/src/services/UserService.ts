@@ -107,14 +107,37 @@ export class UserService {
     senha: string;
     cnpj: string;
     endereco: string;
+    telefone?: string;
   }): Promise<{ user: User; ong: any }> {
-    const { nome, email, senha, cnpj, endereco } = data;
-    const user = await this.userRepository.create({ nome, email, senha });
-    const ong = await this.userRepository.createOng({
-      id: user.id,
-      cnpj,
-      endereco
-    });
-    return { user, ong };
+    try {
+      const { nome, email, senha, cnpj, endereco, telefone } = data;
+      console.log('Dados recebidos para criar usuário e ONG:', { nome, email, cnpj, endereco, telefone });
+
+      // Verifica se o email já existe
+      const existingUser = await this.userRepository.findByEmail(email);
+      if (existingUser) {
+        throw new Error('Email já cadastrado');
+      }
+
+      // Cria o usuário
+      console.log('Criando usuário...');
+      const user = await this.userRepository.create({ nome, email, senha });
+      console.log('Usuário criado:', user);
+
+      // Cria a ONG usando o userRepository
+      console.log('Criando ONG...');
+      const ong = await this.userRepository.createOng({
+        id: user.id,
+        cnpj,
+        endereco,
+        telefone
+      });
+      console.log('ONG criada:', ong);
+
+      return { user, ong };
+    } catch (error) {
+      console.error('Erro ao criar usuário e ONG:', error);
+      throw error;
+    }
   }
 }

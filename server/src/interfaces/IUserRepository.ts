@@ -10,5 +10,10 @@ export interface IUserRepository {
   delete(id: number): Promise<void>;
   findAll(): Promise<User[]>;
   createAdotante(data: { id: number; cpf: string }): Promise<any>;
-  createOng(data: { id: number; cnpj: string; endereco: string }): Promise<any>;
+  createOng(data: {
+    id: number;
+    cnpj: string;
+    endereco: string;
+    telefone?: string;
+  }): Promise<any>;
 }

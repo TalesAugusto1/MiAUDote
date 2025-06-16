@@ -103,9 +103,9 @@ export default function SignupScreen() {
         setIsLoading(true);
 
         const userData = {
-          name,
-          email,
-          password,
+          name: name,
+          email: email,
+          password: password,
           profilePicture: undefined,
         };
 
@@ -130,10 +130,21 @@ export default function SignupScreen() {
         } else {
           const ongData = {
             cnpj: cnpj.replace(/\D/g, ''),
-            whatsapp: phone,
             endereco: address,
+            telefone: phone.replace(/\D/g, ''),
           };
-          await userService.registerUser(userData, ongData);
+          const response = await userService.registerUser(userData, ongData);
+          
+          if (response.success) {
+            Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
+              {
+                text: "OK",
+                onPress: () => router.replace("/(tabs)"),
+              },
+            ]);
+          } else {
+            throw new Error(response.message || "Erro ao realizar cadastro");
+          }
         }
       } catch (error: any) {
         Alert.alert("Erro", error.message || "Erro ao realizar cadastro");
@@ -172,14 +183,14 @@ export default function SignupScreen() {
     if (maxCnpj.length > 2) {
       formatted = maxCnpj.substring(0, 2) + "." + maxCnpj.substring(2);
     }
-    if (maxCnpj.length > 6) {
-      formatted = formatted.substring(0, 6) + "." + maxCnpj.substring(6, 9);
+    if (maxCnpj.length > 5) {
+      formatted = formatted.substring(0, 6) + "." + maxCnpj.substring(5, 8);
     }
-    if (maxCnpj.length > 10) {
-      formatted = formatted.substring(0, 10) + "/" + maxCnpj.substring(10, 14);
+    if (maxCnpj.length > 8) {
+      formatted = formatted.substring(0, 10) + "/" + maxCnpj.substring(8, 12);
     }
-    if (maxCnpj.length > 14) {
-      formatted = formatted.substring(0, 15) + "-" + maxCnpj.substring(14, 16);
+    if (maxCnpj.length > 12) {
+      formatted = formatted.substring(0, 15) + "-" + maxCnpj.substring(12, 14);
     }
     return formatted;
   };

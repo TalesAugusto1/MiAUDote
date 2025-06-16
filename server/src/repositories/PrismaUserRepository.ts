@@ -47,13 +47,27 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
-  async createOng(data: { id: number; cnpj: string; endereco: string }): Promise<any> {
-    return this.prisma.ong.create({
-      data: {
-        id: data.id,
-        cnpj: data.cnpj,
-        endereco: data.endereco
-      }
-    });
+  async createOng(data: { 
+    id: number;
+    cnpj: string; 
+    endereco: string; 
+    telefone?: string;
+  }): Promise<any> {
+    try {
+      console.log('Dados recebidos para criar ONG:', data);
+      const ong = await this.prisma.ong.create({
+        data: {
+          id: data.id,
+          cnpj: data.cnpj,
+          endereco: data.endereco,
+          telefone: data.telefone
+        }
+      });
+      console.log('ONG criada com sucesso:', ong);
+      return ong;
+    } catch (error) {
+      console.error('Erro ao criar ONG:', error);
+      throw error;
+    }
   }
 }

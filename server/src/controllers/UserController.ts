@@ -177,6 +177,7 @@ export class UserController {
    *               - senha
    *               - cnpj
    *               - endereco
+   *               - telefone
    *             properties:
    *               nome:
    *                 type: string
@@ -188,15 +189,26 @@ export class UserController {
    *                 type: string
    *               endereco:
    *                 type: string
+   *               telefone:
+   *                 type: string
    *     responses:
    *       201:
    *         description: Usuário e ONG criados com sucesso
    */
   async createWithOng(req: Request, res: Response) {
     try {
-      const { nome, email, senha, cnpj, endereco } = req.body;
+      console.log('Body recebido:', req.body);
+      const { nome, email, senha, cnpj, endereco, telefone } = req.body;
 
-      if (!nome || !email || !senha || !cnpj || !endereco) {
+      if (!nome || !email || !senha || !cnpj || !endereco || !telefone) {
+        console.log('Campos faltando:', {
+          nome: !nome,
+          email: !email,
+          senha: !senha,
+          cnpj: !cnpj,
+          endereco: !endereco,
+          telefone: !telefone
+        });
         return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
       }
 
@@ -205,15 +217,16 @@ export class UserController {
         email,
         senha,
         cnpj,
-        endereco
+        endereco,
+        telefone
       });
 
       return res.status(201).json(result);
     } catch (error) {
       console.error('Erro ao criar usuário e ONG:', error);
       
-      if (error instanceof Error && error.message.includes('Unique constraint failed on the constraint: `User_email_key`')) {
-        return res.status(400).json({ 
+      if (error instanceof Error && error.message.includes('Email já cadastrado')) {
+        return res.status(409).json({ 
           error: 'Email já cadastrado',
           details: 'Este email já está sendo usado por outro usuário'
         });

@@ -31,6 +31,7 @@ model Ong {
   id       Int    @id
   cnpj     String
   endereco String
+  telefone String?
 
   user    User     @relation("UserOng", fields: [id], references: [id])
   animais Animal[]
