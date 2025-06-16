@@ -117,9 +117,20 @@ export class UserController {
    */
   async createWithAdotante(req: Request, res: Response) {
     try {
+      console.log('Body recebido:', req.body);
+      console.log('Headers recebidos:', req.headers);
+      
       const { nome, email, senha, cpf } = req.body;
 
+      console.log('Dados extraídos:', { nome, email, senha, cpf });
+
       if (!nome || !email || !senha || !cpf) {
+        console.log('Campos faltando:', {
+          nome: !nome,
+          email: !email,
+          senha: !senha,
+          cpf: !cpf
+        });
         return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
       }
 

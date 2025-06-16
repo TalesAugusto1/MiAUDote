@@ -6,7 +6,10 @@ export class PrismaAdotanteRepository implements IAdotanteRepository {
 
   async create(data: Prisma.AdotanteCreateInput): Promise<Adotante> {
     return this.prisma.adotante.create({
-      data,
+      data: {
+        cpf: data.cpf,
+        user: data.user
+      },
       include: {
         user: true
       }

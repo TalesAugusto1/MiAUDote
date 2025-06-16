@@ -26,6 +26,15 @@ const app = express();
 const router = Router();
 const prisma = new PrismaClient();
 
+// Tratamento de erros não capturados
+process.on('uncaughtException', (error) => {
+  console.error('Erro não capturado:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Promessa rejeitada não tratada:', error);
+});
+
 // Repositories
 const userRepository = new PrismaUserRepository(prisma);
 const adotanteRepository = new PrismaAdotanteRepository(prisma);
@@ -35,7 +44,7 @@ const adocaoRepository = new PrismaAdocaoRepository(prisma);
 const formularioRepository = new PrismaFormularioRepository(prisma);
 
 // Services
-const userService = new UserService(userRepository);
+const userService = new UserService(userRepository, adotanteRepository);
 const adotanteService = new AdotanteService(adotanteRepository);
 const ongService = new OngService(ongRepository);
 const animalService = new AnimalService(animalRepository);
@@ -53,15 +62,39 @@ const formularioController = new FormularioController(formularioService);
 app.use(cors());
 app.use(express.json());
 
+// Middleware de log
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// Middleware de tratamento de erros
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Erro na aplicação:', err);
+  res.status(500).json({
+    error: 'Erro interno do servidor',
+    details: err.message
+  });
+});
+
 // Configuração do Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+// Endpoint de versão
+app.get('/version', (req, res) => {
+  res.json({
+    version: '1.0.0',
+    lastUpdate: new Date().toISOString(),
+    status: 'running'
+  });
+});
 
 // Rotas de usuário
 app.post('/user', userController.create.bind(userController));
 app.post('/user/adotante', userController.createWithAdotante.bind(userController));
 app.post('/user/ong', userController.createWithOng.bind(userController));
-app.get('/user/:id', userController.findById.bind(userController));
 app.get('/user', userController.findAll.bind(userController));
+app.get('/user/:id', userController.findById.bind(userController));
 
 // Rotas de adotante
 app.get('/adotante', adotanteController.findAll.bind(adotanteController));
@@ -114,7 +147,24 @@ app.use(router);
 
 const PORT = process.env.PORT || 3333;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📚 Documentação disponível em http://localhost:${PORT}/api-docs`);
+});
+
+// Tratamento de encerramento gracioso
+process.on('SIGTERM', () => {
+  console.log('Recebido SIGTERM. Encerrando servidor...');
+  server.close(() => {
+    console.log('Servidor encerrado.');
+    prisma.$disconnect();
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('Recebido SIGINT. Encerrando servidor...');
+  server.close(() => {
+    console.log('Servidor encerrado.');
+    prisma.$disconnect();
+  });
 }); 

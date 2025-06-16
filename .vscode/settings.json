@@ -3,5 +3,7 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "appService.defaultWebAppToDeploy": "/subscriptions/1e9d7829-06ea-49f2-8307-ff578fdf31ec/resourceGroups/miaudote-api_group/providers/Microsoft.Web/sites/miaudote-api",
+  "appService.deploySubpath": "server"
 }
