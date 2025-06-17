@@ -31,6 +31,58 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async delete(id: number): Promise<void> {
+    // Primeiro, vamos encontrar o usuário para verificar se é adotante ou ONG
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        adotante: true,
+        ong: true
+      }
+    });
+
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    // Se for adotante, deleta os formulários e adoções primeiro
+    if (user.adotante) {
+      await this.prisma.formulario.deleteMany({
+        where: { idAdotante: user.adotante.id }
+      });
+
+      await this.prisma.adocao.deleteMany({
+        where: { idAdotante: user.adotante.id }
+      });
+
+      // Deleta o adotante
+      await this.prisma.adotante.delete({
+        where: { id: user.adotante.id }
+      });
+    }
+
+    // Se for ONG, deleta os animais e suas adoções
+    if (user.ong) {
+      const animais = await this.prisma.animal.findMany({
+        where: { idOng: user.ong.id }
+      });
+
+      for (const animal of animais) {
+        await this.prisma.adocao.deleteMany({
+          where: { idAnimal: animal.id }
+        });
+      }
+
+      await this.prisma.animal.deleteMany({
+        where: { idOng: user.ong.id }
+      });
+
+      // Deleta a ONG
+      await this.prisma.ong.delete({
+        where: { id: user.ong.id }
+      });
+    }
+
+    // Por fim, deleta o usuário
     await this.prisma.user.delete({ where: { id } });
   }
 
