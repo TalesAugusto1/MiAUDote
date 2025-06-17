@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,18 +14,35 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { authService } from "./services/auth";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    router.replace("/(tabs)");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Erro", "Por favor, preencha todos os campos");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await authService.login({ email, senha: password });
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      Alert.alert(
+        "Erro ao fazer login",
+        error.message || "Ocorreu um erro ao tentar fazer login. Tente novamente."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = () => {
-    
     router.push("/signup");
   };
 
@@ -56,12 +75,13 @@ export default function LoginScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Nome/E-mail"
+              placeholder="E-mail"
               placeholderTextColor="#777"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              editable={!isLoading}
             />
           </View>
 
@@ -79,10 +99,12 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
+              editable={!isLoading}
             />
             <TouchableOpacity
               style={styles.passwordToggle}
               onPress={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -95,25 +117,37 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={styles.forgotPassword}
             onPress={handleForgotPassword}
+            disabled={isLoading}
           >
             <Text style={styles.forgotPasswordText}>Esqueceu senha?</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
-            <Ionicons
-              name="paw-outline"
-              size={20}
-              color="white"
-              style={styles.pawIcon}
-            />
+          <TouchableOpacity 
+            style={[styles.loginButton, isLoading && styles.disabledButton]} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Text style={styles.loginButtonText}>Login</Text>
+                <Ionicons
+                  name="paw-outline"
+                  size={20}
+                  color="white"
+                  style={styles.pawIcon}
+                />
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.registerButton}
             onPress={handleRegister}
+            disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>Cadastre-se</Text>
             <Ionicons
@@ -199,6 +233,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   loginButtonText: {
     color: "white",
