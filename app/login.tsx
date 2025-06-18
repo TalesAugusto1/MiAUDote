@@ -2,20 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { authService } from "./services/auth";
 import { SafeAreaView as SafeAreaViewContext } from "react-native-safe-area-context";
-import { MOCK_USERS, setCurrentUser } from "./mockData";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -24,15 +22,15 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
-    const userType = email === "ong@gmail.com" ? "ong" : "adotante";
-    const user = MOCK_USERS[userType];
+    // Verificação mockada com as credenciais específicas
+    const MOCK_EMAIL = "protecaoanimal@email.com";
+    const MOCK_PASSWORD = "senha456";
     
-    if (user && password === user.password) {
-      console.log("[LOGIN] Usuário logado:", user);
-      setCurrentUser(user);
+    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
+      console.log("[LOGIN] Login mockado realizado com sucesso");
       Alert.alert(
         "Login realizado com sucesso!",
-        `Bem-vindo(a), ${user.name}!`,
+        "Bem-vindo(a) ao MiAUDote!",
         [
           {
             text: "OK",

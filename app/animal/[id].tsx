@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
+    Alert,
     Image,
     ScrollView,
     StyleSheet,
@@ -10,43 +12,45 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Mock data - em produção isso viria de uma API
-const animals = [
-  {
-    id: 1,
-    name: "Fred",
-    type: "Cachorro",
-    image: { uri: "https://placedog.net/500/500" },
-    age: "2 anos",
-    gender: "Macho",
-    ongId: 1,
-    description: "Fred é um cachorro muito brincalhão e carinhoso. Adora passear e brincar com bolinhas. Está castrado e com todas as vacinas em dia.",
-    size: "Médio",
-    temperament: "Brincalhão",
-    health: "Vacinado e castrado",
-    location: "São Paulo, SP"
-  },
-  {
-    id: 2,
-    name: "Amora",
-    type: "Gato",
-    image: { uri: "https://placekitten.com/500/500" },
-    age: "1 ano",
-    gender: "Fêmea",
-    ongId: 1,
-    description: "Amora é uma gata muito tranquila e carinhosa. Se dá bem com outros animais e crianças. Está castrada e com todas as vacinas em dia.",
-    size: "Pequeno",
-    temperament: "Tranquilo",
-    health: "Vacinada e castrada",
-    location: "São Paulo, SP"
-  },
-  // ... outros animais
-];
+import { Animal, animalService } from "../services/AnimalService";
 
 export default function AnimalDetailsScreen() {
   const { id } = useLocalSearchParams();
-  const animal = animals.find(a => a.id === Number(id));
+  const [animal, setAnimal] = useState<Animal | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      loadAnimal(Number(id));
+    }
+  }, [id]);
+
+  const loadAnimal = async (animalId: number) => {
+    try {
+      setLoading(true);
+      console.log('🐾 Carregando animal ID:', animalId);
+      const animalData = await animalService.getAnimalById(animalId);
+      setAnimal(animalData);
+    } catch (error) {
+      console.error('❌ Erro ao carregar animal:', error);
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar os dados do animal.',
+        [
+          {
+            text: 'Tentar novamente',
+            onPress: () => loadAnimal(animalId)
+          },
+          {
+            text: 'Voltar',
+            onPress: () => router.back()
+          }
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,11 +62,16 @@ export default function AnimalDetailsScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{animal?.name || "Animal não encontrado"}</Text>
+        <Text style={styles.headerTitle}>{animal?.name || "Carregando..."}</Text>
         <View style={styles.placeholder} />
       </View>
 
-      {animal ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CC9F0" />
+          <Text style={styles.loadingText}>Carregando animal...</Text>
+        </View>
+      ) : animal ? (
         <ScrollView style={styles.content}>
           <Image source={animal.image} style={styles.image} />
           
@@ -84,7 +93,10 @@ export default function AnimalDetailsScreen() {
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Sobre</Text>
-              <Text style={styles.description}>{animal.description}</Text>
+              <Text style={styles.description}>
+                {animal.name} é um {animal.type.toLowerCase()} de {animal.age}, da raça {animal.breed}. 
+                É um animal de porte {animal.size?.toLowerCase()} que está procurando um lar cheio de amor e carinho.
+              </Text>
             </View>
 
             <View style={styles.section}>
@@ -95,24 +107,36 @@ export default function AnimalDetailsScreen() {
                   <Text style={styles.characteristicText}>Porte: {animal.size}</Text>
                 </View>
                 <View style={styles.characteristic}>
-                  <Ionicons name="heart" size={20} color="#4CC9F0" />
-                  <Text style={styles.characteristicText}>Temperamento: {animal.temperament}</Text>
+                  <Ionicons name="paw" size={20} color="#4CC9F0" />
+                  <Text style={styles.characteristicText}>Raça: {animal.breed}</Text>
                 </View>
                 <View style={styles.characteristic}>
-                  <Ionicons name="medkit" size={20} color="#4CC9F0" />
-                  <Text style={styles.characteristicText}>Saúde: {animal.health}</Text>
+                  <Ionicons name="calendar" size={20} color="#4CC9F0" />
+                  <Text style={styles.characteristicText}>Idade: {animal.age}</Text>
                 </View>
                 <View style={styles.characteristic}>
-                  <Ionicons name="location" size={20} color="#4CC9F0" />
-                  <Text style={styles.characteristicText}>Localização: {animal.location}</Text>
+                  <Ionicons name="male-female" size={20} color="#4CC9F0" />
+                  <Text style={styles.characteristicText}>Sexo: {animal.gender}</Text>
                 </View>
               </View>
             </View>
+
+            <TouchableOpacity style={styles.adoptButton}>
+              <Text style={styles.adoptButtonText}>Quero Adotar</Text>
+              <Ionicons name="heart" size={20} color="white" />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       ) : (
         <View style={styles.notFoundContainer}>
+          <Ionicons name="sad-outline" size={50} color="#CCC" />
           <Text style={styles.notFoundText}>Animal não encontrado</Text>
+          <TouchableOpacity 
+            style={styles.backToHomeButton}
+            onPress={() => router.replace("/(tabs)")}
+          >
+            <Text style={styles.backToHomeText}>Voltar ao início</Text>
+          </TouchableOpacity>
         </View>
       )}
     </SafeAreaView>
@@ -205,6 +229,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 20,
+  },
   notFoundContainer: {
     flex: 1,
     justifyContent: "center",
@@ -214,5 +249,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
+  },
+  backToHomeButton: {
+    backgroundColor: "#4CC9F0",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  backToHomeText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+  },
+  adoptButton: {
+    backgroundColor: "#4CC9F0",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  adoptButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    marginRight: 10,
   },
 }); 

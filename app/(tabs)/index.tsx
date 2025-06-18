@@ -2,82 +2,26 @@ import { Animal } from "@/components/AnimalCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getCurrentUser } from "../mockData";
+import { animalService } from "../services/AnimalService";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 50) / 2;
-
-const animals = [
-  {
-    id: 1,
-    name: "Fred",
-    type: "Cachorro",
-    image: { uri: "https://placedog.net/500/500" },
-    age: "2 anos",
-    gender: "Macho",
-    ongId: 1 // Animal da ONG Amigos dos Animais
-  },
-  {
-    id: 2,
-    name: "Amora",
-    type: "Gato",
-    image: { uri: "https://placekitten.com/500/500" },
-    age: "1 ano",
-    gender: "Fêmea",
-    ongId: 1 // Animal da ONG Amigos dos Animais
-  },
-  {
-    id: 3,
-    name: "Max",
-    type: "Cachorro",
-    image: { uri: "https://placedog.net/501/501" },
-    age: "3 anos",
-    gender: "Macho",
-    ongId: 2 // Animal de outra ONG
-  },
-  {
-    id: 4,
-    name: "Luna",
-    type: "Gato",
-    image: { uri: "https://placekitten.com/501/501" },
-    age: "7 meses",
-    gender: "Fêmea",
-    ongId: 3 // Animal de outra ONG
-  },
-  {
-    id: 5,
-    name: "Rex",
-    type: "Cachorro",
-    image: { uri: "https://placedog.net/502/502" },
-    age: "5 anos",
-    gender: "Macho",
-    ongId: 4 // Animal de outra ONG
-  },
-  {
-    id: 6,
-    name: "Mia",
-    type: "Gato",
-    image: { uri: "https://placekitten.com/502/502" },
-    age: "2 anos",
-    gender: "Fêmea",
-    ongId: 5 // Animal de outra ONG
-  },
-];
 
 interface EnhancedAnimalCardProps {
   animal: Animal;
@@ -169,37 +113,62 @@ const FilterTab = ({
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const currentUser = getCurrentUser();
-  const [activeFilter, setActiveFilter] = useState(currentUser?.type === "ong" ? "ONG" : "Todos");
+  const [loading, setLoading] = useState(true);
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [activeFilter, setActiveFilter] = useState("Todos");
   const router = useRouter();
 
-  // Filtra os animais baseado no tipo de usuário e busca
+  // Carregar animais da API
+  useEffect(() => {
+    loadAnimals();
+  }, []);
+
+  const loadAnimals = async () => {
+    try {
+      setLoading(true);
+      const animalsData = await animalService.getAllAnimals();
+      setAnimals(animalsData);
+      console.log('🐾 Animais carregados no estado:', animalsData.length);
+    } catch (error) {
+      console.error('❌ Erro ao carregar animais:', error);
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar os animais. Verifique sua conexão com a internet.',
+        [
+          {
+            text: 'Tentar novamente',
+            onPress: loadAnimals
+          },
+          {
+            text: 'OK',
+            style: 'cancel'
+          }
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtra os animais baseado no filtro ativo e busca
   const filteredAnimals = animals.filter((animal) => {
     const matchesSearch =
       animal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      animal.type.toLowerCase().includes(searchQuery.toLowerCase());
+      animal.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      animal.breed.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Se o filtro ativo for "ONG", mostra apenas os animais da ONG logada
-    if (activeFilter === "ONG" && currentUser?.type === "ong") {
-      if (animal.ongId !== (currentUser as any).id) {
-        return false;
-      }
-    } else {
-      // Para outros filtros, aplica o filtro de tipo
-      const matchesFilter = activeFilter === "Todos" || animal.type === activeFilter;
-      if (!matchesFilter) {
-        return false;
-      }
-    }
-
-    return matchesSearch;
+    // Aplicar filtro de tipo
+    const matchesFilter = activeFilter === "Todos" || animal.type === activeFilter;
+    
+    return matchesSearch && matchesFilter;
   });
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
-    setLoading(true);
-    setTimeout(() => setLoading(false), 300);
+  };
+
+  const handleFilterPress = (filter: string) => {
+    setActiveFilter(filter);
   };
 
   return (
@@ -221,7 +190,7 @@ export default function HomeScreen() {
                 />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder={currentUser?.type === "ong" ? "Buscar meus animais" : "Buscar animais"}
+                  placeholder="Buscar animais"
                   placeholderTextColor="#999"
                   value={searchQuery}
                   onChangeText={handleSearch}
@@ -243,20 +212,18 @@ export default function HomeScreen() {
                   style={styles.filterContainer}
                   contentContainerStyle={styles.filterContent}
                 >
-                  {currentUser?.type === "ong" && (
-                    <FilterTab
-                      key="ONG"
-                      filter="ONG"
-                      active={activeFilter === "ONG"}
-                      onPress={() => setActiveFilter("ONG")}
-                    />
-                  )}
+                  <FilterTab
+                    key="ONG"
+                    filter="ONG"
+                    active={activeFilter === "ONG"}
+                    onPress={() => handleFilterPress("ONG")}
+                  />
                   {["Todos", "Cachorro", "Gato"].map((filter) => (
                     <FilterTab
                       key={filter}
                       filter={filter}
                       active={activeFilter === filter}
-                      onPress={() => setActiveFilter(filter)}
+                      onPress={() => handleFilterPress(filter)}
                     />
                   ))}
                 </ScrollView>
@@ -267,10 +234,10 @@ export default function HomeScreen() {
               <View style={styles.headerContainer}>
                 <View>
                   <Text style={styles.headerTitle}>
-                    {currentUser?.type === "ong" ? "Meus Animais" : "Adoção de animais"}
+                    "Adoção de animais"
                   </Text>
                   <Text style={styles.headerSubtitle}>
-                    {currentUser?.type === "ong" ? "Gerencie seus animais" : "Encontre seu novo amigo"}
+                    "Encontre seu novo amigo"
                   </Text>
                 </View>
                 <View style={styles.logoContainer}>
@@ -311,9 +278,7 @@ export default function HomeScreen() {
                       Nenhum animal encontrado
                     </Text>
                     <Text style={styles.noResultsSubtext}>
-                      {currentUser?.type === "ong" 
-                        ? "Você ainda não cadastrou nenhum animal"
-                        : "Tente uma busca diferente"}
+                      Tente uma busca diferente
                     </Text>
                   </View>
                 )}
@@ -322,14 +287,12 @@ export default function HomeScreen() {
           </View>
         </KeyboardAvoidingView>
 
-        {currentUser?.type === "ong" && (
-          <TouchableOpacity
-            style={styles.floatingButton}
-            onPress={() => router.push("/novo-animal")}
-          >
-            <Ionicons name="add" size={30} color="white" />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => router.push("/novo-animal")}
+        >
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
       </SafeAreaView>
     </>
   );

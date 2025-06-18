@@ -1,28 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getCurrentUser, setCurrentUser } from "../mockData";
 
 export default function ProfileScreen() {
-  const user = getCurrentUser();
-
-  useEffect(() => {
-    console.log("[PROFILE] Usuário atual:", user);
-  }, [user]);
-
   const handleLogout = () => {
-    console.log("[PROFILE] Fazendo logout do usuário:", user);
-    setCurrentUser(null);
+    console.log("[PROFILE] Fazendo logout...");
     router.replace("/login");
   };
-
-  if (!user) {
-    console.log("[PROFILE] Nenhum usuário encontrado");
-    return null;
-  }
 
   return (
     <>
@@ -39,55 +26,79 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.profileContainer}>
-          <View style={styles.profileImageContainer}>
-            <Ionicons name="person-circle" size={100} color="#4CC9F0" />
-          </View>
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
-          <Text style={styles.userType}>Tipo: {user.type === 'adotante' ? 'Adotante' : 'ONG'}</Text>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{user.stats.adoptions}</Text>
-              <Text style={styles.statLabel}>Adoções</Text>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.profileContainer}>
+            <View style={styles.profileImageContainer}>
+              <Ionicons name="person-circle" size={100} color="#4CC9F0" />
+              <TouchableOpacity style={styles.editImageButton}>
+                <Ionicons name="camera" size={20} color="white" />
+              </TouchableOpacity>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{user.stats.favorites}</Text>
-              <Text style={styles.statLabel}>Favoritos</Text>
+            
+            <Text style={styles.userName}>Nome do Usuário</Text>
+            <Text style={styles.userEmail}>email@exemplo.com</Text>
+            <Text style={styles.userType}>Tipo: Usuário</Text>
+
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>0</Text>
+                <Text style={styles.statLabel}>Adoções</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>0</Text>
+                <Text style={styles.statLabel}>Favoritos</Text>
+              </View>
             </View>
+
+            <View style={styles.menuContainer}>
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="person-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Editar Perfil</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="heart-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Favoritos</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="paw-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Meus Animais</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="settings-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Configurações</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="help-circle-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Ajuda e Suporte</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="document-text-outline" size={24} color="#555" />
+                <Text style={styles.menuItemText}>Termos de Uso</Text>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutButtonText}>Sair</Text>
+              <Ionicons
+                name="exit-outline"
+                size={20}
+                color="white"
+                style={styles.logoutIcon}
+              />
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="settings-outline" size={24} color="#555" />
-              <Text style={styles.menuItemText}>Configurações</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="heart-outline" size={24} color="#555" />
-              <Text style={styles.menuItemText}>Favoritos</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="help-circle-outline" size={24} color="#555" />
-              <Text style={styles.menuItemText}>Ajuda</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Sair</Text>
-            <Ionicons
-              name="exit-outline"
-              size={20}
-              color="white"
-              style={styles.logoutIcon}
-            />
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </>
   );
@@ -97,11 +108,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFF5EB",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     flexDirection: "row",
@@ -124,76 +130,117 @@ const styles = StyleSheet.create({
     width: 60,
     height: 40,
   },
-  profileContainer: {
+  content: {
     flex: 1,
+  },
+  profileContainer: {
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 30,
+    paddingBottom: 30,
   },
   profileImageContainer: {
-    marginBottom: 15,
+    position: "relative",
+    marginBottom: 20,
+  },
+  editImageButton: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#4CC9F0",
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
   },
   userName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#333",
+    marginBottom: 5,
   },
   userEmail: {
     fontSize: 16,
     color: "#777",
-    marginBottom: 25,
+    marginBottom: 5,
   },
   userType: {
     fontSize: 16,
     color: "#4CC9F0",
-    marginBottom: 25,
+    marginBottom: 30,
     fontWeight: "500",
   },
   statsContainer: {
     flexDirection: "row",
     width: "80%",
     justifyContent: "space-around",
-    marginBottom: 30,
+    marginBottom: 40,
+    backgroundColor: "white",
+    borderRadius: 15,
+    paddingVertical: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   statItem: {
     alignItems: "center",
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#4CC9F0",
+    marginBottom: 5,
   },
   statLabel: {
     fontSize: 14,
     color: "#555",
+    fontWeight: "500",
   },
   menuContainer: {
     width: "100%",
+    backgroundColor: "white",
+    borderRadius: 15,
     marginBottom: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#f0f0f0",
   },
   menuItemText: {
     flex: 1,
     marginLeft: 15,
     fontSize: 16,
     color: "#333",
+    fontWeight: "500",
   },
   logoutButton: {
     backgroundColor: "#FF6B6B",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     width: "80%",
-    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutButtonText: {
     color: "white",

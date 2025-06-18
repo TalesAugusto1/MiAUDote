@@ -1,10 +1,10 @@
 import React from "react";
 import {
-  Image,
-  ImageSourcePropType,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
+    Image,
+    ImageSourcePropType,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
 } from "react-native";
 
 export interface Animal {
@@ -14,6 +14,9 @@ export interface Animal {
   image: ImageSourcePropType;
   age?: string;
   gender?: string;
+  breed?: string;
+  size?: string;
+  ongId?: number;
 }
 
 interface AnimalCardProps {
