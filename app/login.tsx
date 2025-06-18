@@ -2,16 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+import { SafeAreaView as SafeAreaViewContext } from "react-native-safe-area-context";
+import { MOCK_USERS, setCurrentUser } from "./mockData";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -19,11 +21,28 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
-    router.replace("/(tabs)");
+    const userType = email === "ong@gmail.com" ? "ong" : "adotante";
+    const user = MOCK_USERS[userType];
+    
+    if (user && password === user.password) {
+      console.log("[LOGIN] Usuário logado:", user);
+      setCurrentUser(user);
+      Alert.alert(
+        "Login realizado com sucesso!",
+        `Bem-vindo(a), ${user.name}!`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(tabs)"),
+          },
+        ]
+      );
+    } else {
+      Alert.alert("Erro", "Email ou senha inválidos");
+    }
   };
 
   const handleRegister = () => {
-    
     router.push("/cadastro");
   };
 
@@ -32,7 +51,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaViewContext style={styles.container}>
       <KeyboardAvoidingView
         style={styles.innerContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -125,7 +144,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaViewContext>
   );
 }
 

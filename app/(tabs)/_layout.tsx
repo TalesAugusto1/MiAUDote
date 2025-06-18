@@ -1,11 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import React from "react";
 import { StyleSheet, View } from "react-native";
-
-import { HapticTab } from "@/components/HapticTab";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { useColorScheme } from "@/hooks/useColorScheme";
 
 const CustomTabBarIcon = ({
   name,
@@ -24,16 +19,12 @@ const CustomTabBarIcon = ({
 };
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#4CC9F0",
         tabBarInactiveTintColor: "#A3A3A3",
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
         tabBarStyle: {
           position: "absolute",
           bottom: 20,
@@ -72,19 +63,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Formulário",
-          tabBarIcon: ({ color, focused }) => (
-            <CustomTabBarIcon
-              name="document-text"
-              color={color}
-              focused={focused}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: "Perfil",
@@ -99,15 +77,13 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   iconContainer: {
-    width: 50,
-    height: 30,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   focusedIcon: {
-    backgroundColor: "rgba(76, 201, 240, 0.1)",
-    borderRadius: 15,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: "#E6F7FF",
   },
 });
