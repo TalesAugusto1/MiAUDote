@@ -30,12 +30,28 @@ export default function AnimalDetailsScreen() {
       setLoading(true);
       console.log('🐾 Carregando animal ID:', animalId);
       const animalData = await animalService.getAnimalById(animalId);
+      
+      if (!animalData) {
+        console.log('❌ Animal não encontrado');
+        Alert.alert(
+          'Animal não encontrado',
+          'O animal que você está procurando não foi encontrado ou não existe mais.',
+          [
+            {
+              text: 'Voltar',
+              onPress: () => router.back()
+            }
+          ]
+        );
+        return;
+      }
+      
       setAnimal(animalData);
     } catch (error) {
       console.error('❌ Erro ao carregar animal:', error);
       Alert.alert(
         'Erro',
-        'Não foi possível carregar os dados do animal.',
+        'Não foi possível carregar os dados do animal. Verifique sua conexão e tente novamente.',
         [
           {
             text: 'Tentar novamente',

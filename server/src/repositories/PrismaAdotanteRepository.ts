@@ -25,6 +25,17 @@ export class PrismaAdotanteRepository implements IAdotanteRepository {
     });
   }
 
+  async findByUserId(userId: number): Promise<Adotante | null> {
+    return this.prisma.adotante.findUnique({
+      where: { id: userId },
+      include: {
+        user: true,
+        adocoes: true,
+        formularios: true
+      }
+    });
+  }
+
   async update(id: number, data: Prisma.AdotanteUpdateInput): Promise<Adotante> {
     return this.prisma.adotante.update({
       where: { id },

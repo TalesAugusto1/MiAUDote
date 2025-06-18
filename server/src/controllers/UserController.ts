@@ -41,6 +41,64 @@ export class UserController {
 
   /**
    * @swagger
+   * /user/email/{email}:
+   *   get:
+   *     summary: Busca um usuário pelo email com dados da ONG se existir
+   *     tags: [User]
+   *     parameters:
+   *       - in: path
+   *         name: email
+   *         schema:
+   *           type: string
+   *         required: true
+   *         description: Email do usuário
+   *     responses:
+   *       200:
+   *         description: Dados do usuário com ONG se existir
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
+   *                 ong:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: integer
+   *                     cnpj:
+   *                       type: string
+   *                     endereco:
+   *                       type: string
+   *                     telefone:
+   *                       type: string
+   *       404:
+   *         description: Usuário não encontrado
+   */
+  async findByEmail(req: Request, res: Response) {
+    try {
+      const email = req.params.email;
+      console.log('Buscando usuário por email:', email);
+      
+      const userWithDetails = await this.userService.getUserByEmailWithDetails(email);
+      
+      if (!userWithDetails) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      return res.json(userWithDetails);
+    } catch (error) {
+      console.error('Erro ao buscar usuário por email:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao buscar usuário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
    * /user:
    *   post:
    *     summary: Cria um novo usuário

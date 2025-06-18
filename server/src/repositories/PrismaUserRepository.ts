@@ -16,6 +16,16 @@ export class PrismaUserRepository implements IUserRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  async findOngByUserId(userId: number): Promise<any | null> {
+    return this.prisma.ong.findUnique({ 
+      where: { id: userId },
+      include: {
+        user: true,
+        animais: true
+      }
+    });
+  }
+
   async update(id: number, data: Partial<User>): Promise<User> {
     return this.prisma.user.update({ where: { id }, data });
   }

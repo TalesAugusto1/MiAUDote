@@ -23,6 +23,37 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
+  async getUserByEmailWithDetails(email: string): Promise<{ user: User; ong?: any; adotante?: any } | null> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      return null;
+    }
+
+    // Buscar dados da ONG se existir
+    let ong = null;
+    let adotante = null;
+
+    try {
+      // Tentar buscar ONG
+      ong = await this.userRepository.findOngByUserId(user.id);
+    } catch (error) {
+      console.log('Usuário não é uma ONG ou erro ao buscar ONG:', error);
+    }
+
+    try {
+      // Tentar buscar Adotante
+      adotante = await this.adotanteRepository.findByUserId(user.id);
+    } catch (error) {
+      console.log('Usuário não é um adotante ou erro ao buscar adotante:', error);
+    }
+
+    return {
+      user,
+      ...(ong && { ong }),
+      ...(adotante && { adotante })
+    };
+  }
+
   async updateUser(id: number, data: Partial<User>): Promise<User> {
     return this.userRepository.update(id, data);
   }

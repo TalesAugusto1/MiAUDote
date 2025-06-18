@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -14,6 +15,7 @@ import {
     View
 } from "react-native";
 import { SafeAreaView as SafeAreaViewContext } from "react-native-safe-area-context";
+import { userService } from "./services/UserService";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -21,23 +23,48 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Verificação mockada com as credenciais específicas
-    const MOCK_EMAIL = "protecaoanimal@email.com";
-    const MOCK_PASSWORD = "senha456";
+    const MOCK_CREDENTIALS = [
+      { email: "protecaoanimal@email.com", password: "senha456" },
+      { email: "joao.adotante@gmail.com", password: "123456" }
+    ];
     
-    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
+    const validCredential = MOCK_CREDENTIALS.find(
+      cred => cred.email === email && cred.password === password
+    );
+    
+    if (validCredential) {
+      setIsLoading(true);
       console.log("[LOGIN] Login mockado realizado com sucesso");
-      Alert.alert(
-        "Login realizado com sucesso!",
-        "Bem-vindo(a) ao MiAUDote!",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(tabs)"),
-          },
-        ]
-      );
+      
+      try {
+        // Buscar dados reais do usuário no banco
+        console.log("[LOGIN] Buscando dados do usuário no banco...");
+        const userData = await userService.getUserByEmail(email);
+        
+        if (userData) {
+          // Salvar dados do usuário no AsyncStorage
+          await AsyncStorage.setItem('@MiAuDote:user', JSON.stringify(userData));
+          console.log("[LOGIN] Dados do usuário salvos:", userData);
+          
+          // Redirecionar diretamente sem popup
+          router.replace("/(tabs)");
+        } else {
+          // Se não encontrar o usuário no banco, ainda permite o login mas sem dados
+          console.log("[LOGIN] Usuário não encontrado no banco, continuando sem dados");
+          
+          // Redirecionar diretamente sem popup
+          router.replace("/(tabs)");
+        }
+      } catch (error) {
+        console.error("[LOGIN] Erro ao buscar dados do usuário:", error);
+        
+        // Em caso de erro, ainda permite o login e redireciona diretamente
+        router.replace("/(tabs)");
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       Alert.alert("Erro", "Email ou senha inválidos");
     }

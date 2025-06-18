@@ -101,6 +101,7 @@ app.post('/user', userController.create.bind(userController));
 app.post('/user/adotante', userController.createWithAdotante.bind(userController));
 app.post('/user/ong', userController.createWithOng.bind(userController));
 app.get('/user', userController.findAll.bind(userController));
+app.get('/user/email/:email', userController.findByEmail.bind(userController));
 app.get('/user/:id', userController.findById.bind(userController));
 
 // Rotas de adotante
@@ -115,6 +116,7 @@ app.delete('/ong/:id', ongController.delete.bind(ongController));
 
 // Rotas de animal
 app.get('/animal', animalController.findAll.bind(animalController));
+app.get('/animal/:id', animalController.findById.bind(animalController));
 app.post('/animal', animalController.create.bind(animalController));
 
 // Rotas de adoção

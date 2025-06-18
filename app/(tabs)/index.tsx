@@ -1,24 +1,26 @@
 import { Animal } from "@/components/AnimalCard";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { animalService } from "../services/AnimalService";
+import { UserProfile } from "../services/UserService";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 50) / 2;
@@ -99,7 +101,7 @@ const FilterTab = ({
     )}
     {filter === "ONG" && (
       <Ionicons
-        name="business"
+        name="heart"
         size={16}
         color={active ? "#4CC9F0" : "#FFFFFF"}
         style={styles.filterIcon}
@@ -116,12 +118,34 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [activeFilter, setActiveFilter] = useState("Todos");
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
 
-  // Carregar animais da API
+  // Carregar dados do usuário na primeira vez
   useEffect(() => {
-    loadAnimals();
+    loadUserData();
   }, []);
+
+  // Recarregar animais sempre que a tela ganhar foco
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔄 Tela principal ganhou foco - recarregando animais...');
+      loadAnimals();
+    }, [])
+  );
+
+  const loadUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('@MiAuDote:user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUserProfile(parsedUser);
+        console.log('👤 Usuário carregado:', parsedUser);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados do usuário:', error);
+    }
+  };
 
   const loadAnimals = async () => {
     try {
@@ -155,10 +179,26 @@ export default function HomeScreen() {
     const matchesSearch =
       animal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       animal.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      animal.breed.toLowerCase().includes(searchQuery.toLowerCase());
+      (animal.breed && animal.breed.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Aplicar filtro de tipo
-    const matchesFilter = activeFilter === "Todos" || animal.type === activeFilter;
+    let matchesFilter = true;
+    
+    if (activeFilter === "Todos") {
+      matchesFilter = true;
+    } else if (activeFilter === "ONG") {
+      // Filtrar apenas animais da ONG logada
+      if (userProfile && userProfile.type === 'ong') {
+        matchesFilter = animal.ongId === userProfile.id;
+        console.log(`🔍 Filtro ONG - Animal: ${animal.name}, ONG ID: ${animal.ongId}, User ID: ${userProfile.id}, Match: ${matchesFilter}`);
+      } else {
+        matchesFilter = false; // Se não é ONG, não mostra nenhum animal
+        console.log(`❌ Filtro ONG - Usuário não é ONG ou não está logado`);
+      }
+    } else {
+      // Filtros de tipo (Cachorro, Gato)
+      matchesFilter = animal.type === activeFilter;
+    }
     
     return matchesSearch && matchesFilter;
   });
@@ -212,12 +252,15 @@ export default function HomeScreen() {
                   style={styles.filterContainer}
                   contentContainerStyle={styles.filterContent}
                 >
-                  <FilterTab
-                    key="ONG"
-                    filter="ONG"
-                    active={activeFilter === "ONG"}
-                    onPress={() => handleFilterPress("ONG")}
-                  />
+                  {/* Mostrar filtro ONG apenas para usuários do tipo ONG */}
+                  {userProfile && userProfile.type === 'ong' && (
+                    <FilterTab
+                      key="ONG"
+                      filter="ONG"
+                      active={activeFilter === "ONG"}
+                      onPress={() => handleFilterPress("ONG")}
+                    />
+                  )}
                   {["Todos", "Cachorro", "Gato"].map((filter) => (
                     <FilterTab
                       key={filter}
@@ -234,10 +277,10 @@ export default function HomeScreen() {
               <View style={styles.headerContainer}>
                 <View>
                   <Text style={styles.headerTitle}>
-                    "Adoção de animais"
+                    Adoção de animais
                   </Text>
                   <Text style={styles.headerSubtitle}>
-                    "Encontre seu novo amigo"
+                    Encontre seu novo amigo
                   </Text>
                 </View>
                 <View style={styles.logoContainer}>
@@ -287,12 +330,15 @@ export default function HomeScreen() {
           </View>
         </KeyboardAvoidingView>
 
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => router.push("/novo-animal")}
-        >
-          <Ionicons name="add" size={30} color="white" />
-        </TouchableOpacity>
+        {/* Botão de adicionar animal - apenas para ONGs */}
+        {userProfile && userProfile.type === 'ong' && (
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => router.push("/novo-animal")}
+          >
+            <Ionicons name="add" size={30} color="white" />
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </>
   );

@@ -57,27 +57,19 @@ export const animalService = {
 
   async getAnimalById(id: number): Promise<Animal | null> {
     try {
-      console.log(`🐾 Buscando animal ${id} da API...`);
-      const response = await api.get<AnimalFromAPI>(`/animal/${id}`);
+      console.log(`🐾 Buscando animal ${id} da lista de animais...`);
       
-      const animal: Animal = {
-        id: response.data.id,
-        name: response.data.nome,
-        type: response.data.tipo === 'cachorro' ? 'Cachorro' : response.data.tipo === 'gato' ? 'Gato' : response.data.tipo,
-        age: `${response.data.idade} ${response.data.idade === 1 ? 'ano' : 'anos'}`,
-        gender: response.data.sexo === 'macho' ? 'Macho' : response.data.sexo === 'fêmea' ? 'Fêmea' : response.data.sexo,
-        ongId: response.data.idOng,
-        size: response.data.porte,
-        breed: response.data.raca,
-        image: { 
-          uri: response.data.tipo.toLowerCase() === 'cachorro' 
-            ? `https://placedog.net/500/500?random=${response.data.id}` 
-            : `https://placekitten.com/500/500?random=${response.data.id}` 
-        }
-      };
+      // Buscar diretamente da lista de todos os animais
+      const allAnimals = await this.getAllAnimals();
+      const animal = allAnimals.find(a => a.id === id);
       
-      console.log('✅ Animal carregado:', animal);
-      return animal;
+      if (animal) {
+        console.log('✅ Animal encontrado:', animal);
+        return animal;
+      } else {
+        console.log('❌ Animal não encontrado na lista');
+        return null;
+      }
     } catch (error) {
       console.error('❌ Erro ao buscar animal:', error);
       return null;
