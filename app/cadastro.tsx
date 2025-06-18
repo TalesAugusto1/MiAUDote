@@ -3,18 +3,19 @@ import { Picker } from "@react-native-picker/picker";
 import { router, Stack } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
+import { AdotanteRegistrationStrategy, OngRegistrationStrategy, UserService } from "./services/UserService";
 
 type UserType = "ADOTANTE" | "ONG";
 
@@ -90,39 +91,73 @@ export default function SignupScreen() {
     return true;
   };
 
-  const handleSignup = () => {
-    const userData = {
-      name,
-      email,
-      password,
-      userType,
-      profilePicture: undefined,
-    };
+  const handleSignup = async () => {
+    if (validateForm()) {
+      try {
+        setIsLoading(true);
 
-    router.push({
-      pathname: "/chat-form",
-      params: userData
-    });
+        // Cria a instância do UserService com a strategy apropriada
+        const userService = new UserService(
+          userType === "ADOTANTE" 
+            ? new AdotanteRegistrationStrategy() 
+            : new OngRegistrationStrategy()
+        );
 
-    // if (validateForm()) {
-    //   setIsLoading(true);
+        const userData = {
+          name: name,
+          email: email,
+          password: password,
+          profilePicture: undefined,
+        };
 
-    //   const userData = {
-    //     name,
-    //     email,
-    //     password,
-    //     userType,
-    //     profilePicture: undefined,
-    //   };
-
-    //   // Redireciona para a tela de chat com os dados já preenchidos
-    //   router.push({
-    //     pathname: "/chat-form",
-    //     params: userData
-    //   });
-
-    //   setIsLoading(false);
-    // }
+        if (userType === "ADOTANTE") {
+          const adotanteData = {
+            cpf: cpf.replace(/\D/g, ''),
+            formRespondido: false,
+          };
+          
+          const response = await userService.registerUser(userData, adotanteData);
+          
+          if (response.success) {
+            // Redireciona para o chat-form com os dados do usuário cadastrado
+            router.push({
+              pathname: "/chat-form",
+              params: {
+                ...userData,
+                userType,
+                userId: response.data.user.id, // ID do usuário criado
+                cpf: cpf.replace(/\D/g, ''), // CPF limpo
+              }
+            });
+          } else {
+            throw new Error(response.message || "Erro ao realizar cadastro");
+          }
+        } else {
+          const ongData = {
+            cnpj: cnpj.replace(/\D/g, ''),
+            endereco: address,
+            telefone: phone.replace(/\D/g, ''),
+          };
+          const response = await userService.registerUser(userData, ongData);
+          
+          if (response.success) {
+            // ONGs não precisam preencher formulário, vão direto para as tabs
+            Alert.alert("Sucesso", "Cadastro realizado com sucesso!", [
+              {
+                text: "OK",
+                onPress: () => router.replace("/(tabs)"),
+              },
+            ]);
+          } else {
+            throw new Error(response.message || "Erro ao realizar cadastro");
+          }
+        }
+      } catch (error: any) {
+        Alert.alert("Erro", error.message || "Erro ao realizar cadastro");
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   const goToLogin = () => {
@@ -154,14 +189,14 @@ export default function SignupScreen() {
     if (maxCnpj.length > 2) {
       formatted = maxCnpj.substring(0, 2) + "." + maxCnpj.substring(2);
     }
-    if (maxCnpj.length > 6) {
-      formatted = formatted.substring(0, 6) + "." + maxCnpj.substring(6, 9);
+    if (maxCnpj.length > 5) {
+      formatted = formatted.substring(0, 6) + "." + maxCnpj.substring(5, 8);
     }
-    if (maxCnpj.length > 10) {
-      formatted = formatted.substring(0, 10) + "/" + maxCnpj.substring(10, 14);
+    if (maxCnpj.length > 8) {
+      formatted = formatted.substring(0, 10) + "/" + maxCnpj.substring(8, 12);
     }
-    if (maxCnpj.length > 14) {
-      formatted = formatted.substring(0, 15) + "-" + maxCnpj.substring(14, 16);
+    if (maxCnpj.length > 12) {
+      formatted = formatted.substring(0, 15) + "-" + maxCnpj.substring(12, 14);
     }
     return formatted;
   };

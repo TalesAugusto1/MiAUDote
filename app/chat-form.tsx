@@ -303,13 +303,15 @@ export default function ChatForm() {
         };
         console.log('Dados finais completos:', finalData);
         
+        // Mostra mensagem de conclusão e redireciona para login
         setTimeout(() => {
-          const finalMessage = "🎉 Perfeito! Coletamos todas as informações necessárias. Em breve entraremos em contato para dar continuidade ao processo de adoção!";
+          const finalMessage = "🎉 Perfeito! Coletamos todas as informações necessárias. Agora você será redirecionado para fazer login no sistema!";
           simulateTyping(finalMessage);
+          
           // Marca como completo após mostrar a mensagem final
           setTimeout(() => {
             setIsCompleted(true);
-          }, 3000); // Aumentei para 3 segundos para dar tempo de ler a mensagem
+          }, 3000);
         }, 1000);
         
         return finalData;
@@ -454,11 +456,11 @@ export default function ChatForm() {
             ) : (
               <TouchableOpacity
                 style={styles.finishButton}
-                onPress={() => router.push('/')}
+                onPress={() => router.replace('/login')}
                 activeOpacity={0.8}
               >
-                <Ionicons name="home" size={24} color="#fff" style={styles.finishButtonIcon} />
-                <Text style={styles.finishButtonText}>Voltar ao Início</Text>
+                <Ionicons name="checkmark-circle" size={24} color="#fff" style={styles.finishButtonIcon} />
+                <Text style={styles.finishButtonText}>Finalizar e Fazer Login</Text>
               </TouchableOpacity>
             )}
           </View>

@@ -147,7 +147,7 @@ export class FormularioController {
    */
   async create(req: Request, res: Response) {
     try {
-      const { idAdotante, nomeAdotante, ongResponsavel } = req.body;
+      const { idAdotante, nomeAdotante, ongResponsavel, respostas } = req.body;
 
       if (!idAdotante || !nomeAdotante || !ongResponsavel) {
         return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
@@ -158,7 +158,8 @@ export class FormularioController {
           idAdotante: Number(idAdotante),
           nomeAdotante,
           ongResponsavel,
-          dataEnvio: new Date()
+          dataEnvio: new Date(),
+          ...(respostas && { respostas })
         }
       });
 
@@ -167,6 +168,37 @@ export class FormularioController {
       console.error('Erro ao criar formulário:', error);
       return res.status(500).json({ 
         error: 'Erro ao criar formulário',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /formulario/adotante/{idAdotante}:
+   *   get:
+   *     summary: Busca formulários por ID do adotante
+   *     tags: [Formulario]
+   *     parameters:
+   *       - in: path
+   *         name: idAdotante
+   *         schema:
+   *           type: integer
+   *         required: true
+   *         description: ID do adotante
+   *     responses:
+   *       200:
+   *         description: Lista de formulários do adotante
+   */
+  async findByAdotante(req: Request, res: Response) {
+    try {
+      const { idAdotante } = req.params;
+      const formularios = await this.formularioService.getFormulariosByAdotante(Number(idAdotante));
+      return res.json(formularios);
+    } catch (error) {
+      console.error('Erro ao buscar formulários por adotante:', error);
+      return res.status(500).json({ 
+        error: 'Erro ao buscar formulários por adotante',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
       });
     }

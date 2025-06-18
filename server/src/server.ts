@@ -124,6 +124,10 @@ app.get('/adocao', adocaoController.findAll.bind(adocaoController));
 
 // Rotas de formulário
 app.get('/formulario', formularioController.findAll.bind(formularioController));
+app.get('/formulario/:id', formularioController.findById.bind(formularioController));
+app.get('/formulario/adotante/:idAdotante', formularioController.findByAdotante.bind(formularioController));
+app.post('/formulario', formularioController.create.bind(formularioController));
+app.post('/formulario/test', formularioController.createTest.bind(formularioController));
 
 // Rota para listar tudo
 const listAllHandler: RequestHandler = async (req, res) => {

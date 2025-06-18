@@ -69,6 +69,7 @@ model Formulario {
   nomeAdotante   String
   ongResponsavel String
   dataEnvio      DateTime @default(now())
+  respostas      Json?    // Campo para armazenar as respostas do formulário
 
   adotante Adotante @relation(fields: [idAdotante], references: [id])
 }
