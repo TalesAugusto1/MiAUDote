@@ -1,15 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getCurrentUser, setCurrentUser } from "../mockData";
 
 export default function ProfileScreen() {
-  const handleLogout = () => {
+  const user = getCurrentUser();
 
+  useEffect(() => {
+    console.log("[PROFILE] Usuário atual:", user);
+  }, [user]);
+
+  const handleLogout = () => {
+    console.log("[PROFILE] Fazendo logout do usuário:", user);
+    setCurrentUser(null);
     router.replace("/login");
   };
+
+  if (!user) {
+    console.log("[PROFILE] Nenhum usuário encontrado");
+    return null;
+  }
 
   return (
     <>
@@ -30,16 +43,17 @@ export default function ProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Ionicons name="person-circle" size={100} color="#4CC9F0" />
           </View>
-          <Text style={styles.userName}>Usuário MiAUDote</Text>
-          <Text style={styles.userEmail}>usuario@email.com</Text>
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+          <Text style={styles.userType}>Tipo: {user.type === 'adotante' ? 'Adotante' : 'ONG'}</Text>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>0</Text>
+              <Text style={styles.statNumber}>{user.stats.adoptions}</Text>
               <Text style={styles.statLabel}>Adoções</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>0</Text>
+              <Text style={styles.statNumber}>{user.stats.favorites}</Text>
               <Text style={styles.statLabel}>Favoritos</Text>
             </View>
           </View>
@@ -84,6 +98,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF5EB",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -123,6 +142,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#777",
     marginBottom: 25,
+  },
+  userType: {
+    fontSize: 16,
+    color: "#4CC9F0",
+    marginBottom: 25,
+    fontWeight: "500",
   },
   statsContainer: {
     flexDirection: "row",

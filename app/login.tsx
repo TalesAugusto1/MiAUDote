@@ -7,14 +7,15 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { authService } from "./services/auth";
+import { SafeAreaView as SafeAreaViewContext } from "react-native-safe-area-context";
+import { MOCK_USERS, setCurrentUser } from "./mockData";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -22,28 +23,30 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      await authService.login({ email, senha: password });
-      router.replace("/(tabs)");
-    } catch (error: any) {
+  const handleLogin = () => {
+    const userType = email === "ong@gmail.com" ? "ong" : "adotante";
+    const user = MOCK_USERS[userType];
+    
+    if (user && password === user.password) {
+      console.log("[LOGIN] Usuário logado:", user);
+      setCurrentUser(user);
       Alert.alert(
-        "Erro ao fazer login",
-        error.message || "Ocorreu um erro ao tentar fazer login. Tente novamente."
+        "Login realizado com sucesso!",
+        `Bem-vindo(a), ${user.name}!`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(tabs)"),
+          },
+        ]
       );
-    } finally {
-      setIsLoading(false);
+    } else {
+      Alert.alert("Erro", "Email ou senha inválidos");
     }
   };
 
   const handleRegister = () => {
-    router.push("/signup");
+    router.push("/cadastro");
   };
 
   const handleForgotPassword = () => {
@@ -51,7 +54,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaViewContext style={styles.container}>
       <KeyboardAvoidingView
         style={styles.innerContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -159,7 +162,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaViewContext>
   );
 }
 

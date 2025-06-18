@@ -1,20 +1,10 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { IUserRepository } from '../interfaces/IUserRepository';
-
-type User = Prisma.UserGetPayload<{}>;
-type UserBasicInfo = {
-  id: number;
-  nome: string;
-  email: string;
-  senha: string;
-  adotante?: { id: number };
-  ong?: { id: number };
-};
 
 export class PrismaUserRepository implements IUserRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+  async create(data: { nome: string; email: string; senha: string }): Promise<User> {
     return this.prisma.user.create({ data });
   }
 

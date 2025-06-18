@@ -78,7 +78,14 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // Configuração do Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+const swaggerOptions = {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "MiAuDote API Documentation"
+};
+
+// @ts-ignore - Ignorando erro de tipagem do Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
 // Endpoint de versão
 app.get('/version', (req, res) => {

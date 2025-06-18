@@ -53,6 +53,7 @@ const loginSchema = z.object({
 
 export class AuthController {
   private authService: AuthService;
+  private prisma: PrismaClient;
 
   constructor() {
     const prisma = new PrismaClient();
@@ -171,7 +172,7 @@ export class AuthController {
    *       200:
    *         description: Token válido
    */
-  async verifyToken(req: Request, res: Response) {
+  /* async verifyToken(req: Request, res: Response) {
     try {
       const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
@@ -182,5 +183,5 @@ export class AuthController {
     } catch (error) {
       return res.status(401).json({ error: 'Token inválido' });
     }
-  }
+  } */
 } 

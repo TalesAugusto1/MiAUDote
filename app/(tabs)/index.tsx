@@ -1,5 +1,6 @@
 import { Animal } from "@/components/AnimalCard";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
@@ -16,6 +17,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getCurrentUser } from "../mockData";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 50) / 2;
@@ -28,6 +30,7 @@ const animals = [
     image: { uri: "https://placedog.net/500/500" },
     age: "2 anos",
     gender: "Macho",
+    ongId: 1 // Animal da ONG Amigos dos Animais
   },
   {
     id: 2,
@@ -36,6 +39,7 @@ const animals = [
     image: { uri: "https://placekitten.com/500/500" },
     age: "1 ano",
     gender: "Fêmea",
+    ongId: 1 // Animal da ONG Amigos dos Animais
   },
   {
     id: 3,
@@ -44,6 +48,7 @@ const animals = [
     image: { uri: "https://placedog.net/501/501" },
     age: "3 anos",
     gender: "Macho",
+    ongId: 2 // Animal de outra ONG
   },
   {
     id: 4,
@@ -52,6 +57,7 @@ const animals = [
     image: { uri: "https://placekitten.com/501/501" },
     age: "7 meses",
     gender: "Fêmea",
+    ongId: 3 // Animal de outra ONG
   },
   {
     id: 5,
@@ -60,6 +66,7 @@ const animals = [
     image: { uri: "https://placedog.net/502/502" },
     age: "5 anos",
     gender: "Macho",
+    ongId: 4 // Animal de outra ONG
   },
   {
     id: 6,
@@ -68,6 +75,7 @@ const animals = [
     image: { uri: "https://placekitten.com/502/502" },
     age: "2 anos",
     gender: "Fêmea",
+    ongId: 5 // Animal de outra ONG
   },
 ];
 
@@ -75,24 +83,38 @@ interface EnhancedAnimalCardProps {
   animal: Animal;
 }
 
-const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => (
-  <TouchableOpacity style={[styles.card, { width: cardWidth }]}>
-    <View style={styles.cardImageContainer}>
-      <Image source={animal.image} style={styles.cardImage} />
-      <View style={styles.cardTypeTag}>
-        <Text style={styles.cardTypeText}>{animal.type}</Text>
+const EnhancedAnimalCard: React.FC<EnhancedAnimalCardProps> = ({ animal }) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push({
+      pathname: "/animal/[id]",
+      params: { id: animal.id }
+    });
+  };
+
+  return (
+    <TouchableOpacity 
+      style={[styles.card, { width: cardWidth }]}
+      onPress={handlePress}
+    >
+      <View style={styles.cardImageContainer}>
+        <Image source={animal.image} style={styles.cardImage} />
+        <View style={styles.cardTypeTag}>
+          <Text style={styles.cardTypeText}>{animal.type}</Text>
+        </View>
       </View>
-    </View>
-    <View style={styles.cardInfo}>
-      <Text style={styles.cardName}>{animal.name}</Text>
-      <View style={styles.cardDetails}>
-        <Text style={styles.cardDetail}>{animal.age}</Text>
-        <Text style={styles.cardDetailDot}>•</Text>
-        <Text style={styles.cardDetail}>{animal.gender}</Text>
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardName}>{animal.name}</Text>
+        <View style={styles.cardDetails}>
+          <Text style={styles.cardDetail}>{animal.age}</Text>
+          <Text style={styles.cardDetailDot}>•</Text>
+          <Text style={styles.cardDetail}>{animal.gender}</Text>
+        </View>
       </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 const FilterTab = ({
   filter,
@@ -131,6 +153,14 @@ const FilterTab = ({
         style={styles.filterIcon}
       />
     )}
+    {filter === "ONG" && (
+      <Ionicons
+        name="business"
+        size={16}
+        color={active ? "#4CC9F0" : "#FFFFFF"}
+        style={styles.filterIcon}
+      />
+    )}
     <Text style={[styles.filterText, active && styles.activeFilterText]}>
       {filter}
     </Text>
@@ -140,23 +170,35 @@ const FilterTab = ({
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("Todos");
+  const currentUser = getCurrentUser();
+  const [activeFilter, setActiveFilter] = useState(currentUser?.type === "ong" ? "ONG" : "Todos");
+  const router = useRouter();
 
+  // Filtra os animais baseado no tipo de usuário e busca
   const filteredAnimals = animals.filter((animal) => {
     const matchesSearch =
       animal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       animal.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesFilter =
-      activeFilter === "Todos" || animal.type === activeFilter;
+    // Se o filtro ativo for "ONG", mostra apenas os animais da ONG logada
+    if (activeFilter === "ONG" && currentUser?.type === "ong") {
+      if (animal.ongId !== (currentUser as any).id) {
+        return false;
+      }
+    } else {
+      // Para outros filtros, aplica o filtro de tipo
+      const matchesFilter = activeFilter === "Todos" || animal.type === activeFilter;
+      if (!matchesFilter) {
+        return false;
+      }
+    }
 
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   });
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
     setLoading(true);
-
     setTimeout(() => setLoading(false), 300);
   };
 
@@ -179,7 +221,7 @@ export default function HomeScreen() {
                 />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Buscar animais"
+                  placeholder={currentUser?.type === "ong" ? "Buscar meus animais" : "Buscar animais"}
                   placeholderTextColor="#999"
                   value={searchQuery}
                   onChangeText={handleSearch}
@@ -201,6 +243,14 @@ export default function HomeScreen() {
                   style={styles.filterContainer}
                   contentContainerStyle={styles.filterContent}
                 >
+                  {currentUser?.type === "ong" && (
+                    <FilterTab
+                      key="ONG"
+                      filter="ONG"
+                      active={activeFilter === "ONG"}
+                      onPress={() => setActiveFilter("ONG")}
+                    />
+                  )}
                   {["Todos", "Cachorro", "Gato"].map((filter) => (
                     <FilterTab
                       key={filter}
@@ -216,9 +266,11 @@ export default function HomeScreen() {
             <View style={styles.contentContainer}>
               <View style={styles.headerContainer}>
                 <View>
-                  <Text style={styles.headerTitle}>Adoção de animais</Text>
+                  <Text style={styles.headerTitle}>
+                    {currentUser?.type === "ong" ? "Meus Animais" : "Adoção de animais"}
+                  </Text>
                   <Text style={styles.headerSubtitle}>
-                    Encontre seu novo amigo
+                    {currentUser?.type === "ong" ? "Gerencie seus animais" : "Encontre seu novo amigo"}
                   </Text>
                 </View>
                 <View style={styles.logoContainer}>
@@ -239,36 +291,45 @@ export default function HomeScreen() {
                 </Text>
               </View>
 
-              {loading ? (
-                <View style={styles.loadingContainer}>
+              <ScrollView
+                style={styles.animalsContainer}
+                contentContainerStyle={styles.animalsContent}
+                showsVerticalScrollIndicator={false}
+              >
+                {loading ? (
                   <ActivityIndicator size="large" color="#4CC9F0" />
-                </View>
-              ) : (
-                <ScrollView
-                  style={styles.scrollView}
-                  contentContainerStyle={styles.animalGrid}
-                  showsVerticalScrollIndicator={false}
-                  bounces={true}
-                >
-                  {filteredAnimals.map((animal) => (
-                    <EnhancedAnimalCard key={animal.id} animal={animal} />
-                  ))}
-                  {filteredAnimals.length === 0 && !loading && (
-                    <View style={styles.noResultsContainer}>
-                      <Ionicons name="search-outline" size={50} color="#CCC" />
-                      <Text style={styles.noResultsText}>
-                        Nenhum animal encontrado
-                      </Text>
-                      <Text style={styles.noResultsSubtext}>
-                        Tente uma busca diferente
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
-              )}
+                ) : filteredAnimals.length > 0 ? (
+                  <View style={styles.animalsGrid}>
+                    {filteredAnimals.map((animal) => (
+                      <EnhancedAnimalCard key={animal.id} animal={animal} />
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.noResultsContainer}>
+                    <Ionicons name="search-outline" size={50} color="#CCC" />
+                    <Text style={styles.noResultsText}>
+                      Nenhum animal encontrado
+                    </Text>
+                    <Text style={styles.noResultsSubtext}>
+                      {currentUser?.type === "ong" 
+                        ? "Você ainda não cadastrou nenhum animal"
+                        : "Tente uma busca diferente"}
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             </View>
           </View>
         </KeyboardAvoidingView>
+
+        {currentUser?.type === "ong" && (
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => router.push("/novo-animal")}
+          >
+            <Ionicons name="add" size={30} color="white" />
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </>
   );
@@ -413,15 +474,13 @@ const styles = StyleSheet.create({
     color: "#888",
     fontWeight: "500",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
+  animalsContainer: {
     flex: 1,
   },
-  animalGrid: {
+  animalsContent: {
+    paddingBottom: 50,
+  },
+  animalsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
@@ -500,5 +559,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     marginTop: 4,
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 110,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#4CC9F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
