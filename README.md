@@ -3,6 +3,11 @@
 ## Landing Page
 https://landing-page-miaudote.vercel.app
 
+## Link APK
+https://expo.dev/accounts/renanvizoto/projects/MiAuDote/builds/f076e642-95ea-419a-b74b-1c76f9282562
+Acesso para ONG já cadastrada: protecaoanimal@email.com ; senha456
+Acesso para Adotante já cadastrado: joao.adotante@gmail.com ; 123456
+
 ## Sobre o Projeto
 MiAuDote é um aplicativo mobile desenvolvido com React Native e Expo, focado em facilitar a adoção de animais. O projeto implementa padrões de design SOLID e Strategy para garantir uma arquitetura robusta e manutenível.
 
