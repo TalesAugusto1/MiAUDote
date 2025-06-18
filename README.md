@@ -1,5 +1,8 @@
 # MiAuDote - Aplicativo de Adoção de Animais
 
+## Landing Page
+https://landing-page-miaudote.vercel.app
+
 ## Sobre o Projeto
 MiAuDote é um aplicativo mobile desenvolvido com React Native e Expo, focado em facilitar a adoção de animais. O projeto implementa padrões de design SOLID e Strategy para garantir uma arquitetura robusta e manutenível.
 
